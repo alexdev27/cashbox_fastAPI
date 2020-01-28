@@ -1,6 +1,4 @@
-from typing import Union, Dict, List
-
-from pydantic import Field, BaseModel
+from pydantic import Field
 from app.schemas import CashierData, DefaultSuccessResponse
 
 
@@ -14,10 +12,10 @@ class RequestCashOut(CashierData):
 
 class ResponseCashIn(DefaultSuccessResponse):
     amount: float = Field(..., title='Сколько было внесено')
-    msg: float = Field(..., title='Сообщение о совершенной операции')
+    msg: str = Field(..., title='Сообщение о совершенной операции')
 
 
 class ResponseCashOut(DefaultSuccessResponse):
     amount: float = Field(..., title='Сколько было изъято')
-    msg: float = Field(..., title='Сообщение о совершенной операции')
+    msg: str = Field(..., title='Сообщение о совершенной операции')
 

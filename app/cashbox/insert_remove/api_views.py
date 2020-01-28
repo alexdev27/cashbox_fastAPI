@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from .schemas import RequestCashIn, ResponseCashIn
-from .doc_kwargs import doc_cash_in
+from .schemas import RequestCashIn, RequestCashOut
+from .doc_kwargs import doc_cash_in, doc_cash_out
 
 router = APIRouter()
 
@@ -10,5 +10,6 @@ def insert_money(cash_in: RequestCashIn):
     pass
 
 
-def remove_money():
+@router.post('/cash_out', **doc_cash_out)
+def remove_money(cash_out: RequestCashOut):
     pass

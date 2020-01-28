@@ -14,5 +14,4 @@ class CashierData(BaseModel):
 
 
 class DefaultSuccessResponse(BaseModel):
-    error: bool = False
-    # data: Union[Dict, List, str]
+    error: bool = Field(False, title='Флаг ошибки')
