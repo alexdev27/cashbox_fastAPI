@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Query, Path
-
+from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from .schemas import CashboxExceptionSchema
 from .cashbox.insert_remove.api_views import router as insert_remove_router
-from .cashbox.close_shift.api_views import router as close_shift_router
-from .cashbox.open_shift.api_views import router as open_shift_router
+from .cashbox.shifts.api_views import router as shifts_router
 from .cashbox.orders.api_views import router as orders_router
+from .custom_responses import response_400
 
 app = FastAPI()
 
@@ -16,10 +15,23 @@ def url_with_prefix(url: str = '') -> str:
     return f'{default_prefix}{url}'
 
 
-app.include_router(router=insert_remove_router, prefix=url_with_prefix(), tags=['Операции внесения-изъятия налички'])
-app.include_router(router=close_shift_router, prefix=url_with_prefix(), tags=['Операции со сменой'])
-app.include_router(router=open_shift_router, prefix=url_with_prefix(), tags=['Операции со сменой'])
-app.include_router(router=orders_router, prefix=url_with_prefix(), tags=['Заказы (совершение оплаты/отмены)'])
+app.include_router(
+    router=insert_remove_router,
+    prefix=url_with_prefix(),
+    responses=response_400,
+    tags=['Операции внесения-изъятия налички'])
+
+app.include_router(
+    router=shifts_router,
+    prefix=url_with_prefix(),
+    responses=response_400,
+    tags=['Операции со сменой'])
+
+app.include_router(
+    router=orders_router,
+    prefix=url_with_prefix(),
+    responses=response_400,
+    tags=['Заказы (совершение оплаты/отмены)'])
 
 
 def custom_openapi():

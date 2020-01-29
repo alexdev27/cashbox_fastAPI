@@ -1,8 +1,4 @@
-from enum import IntEnum, Enum
-from collections import namedtuple
-
-
-_ = namedtuple('tax', ['fiscal_key', 'cashbox_key'])
+from enum import IntEnum
 
 
 class FiscalTaxesNumbers(IntEnum):
@@ -13,18 +9,6 @@ class FiscalTaxesNumbers(IntEnum):
 class CashboxTaxesNumbers(IntEnum):
     tax_10_percent = 10
     tax_20_percent = 20
-
-
-# class Taxes(Enum):
-#     tax_10 = _('1', 10)
-#     tax_20 = _('0', 20)
-#
-#     @staticmethod
-#     def get_fiscal_keys():
-#         return [
-#             int(Taxes.tax_10.value.fiscal_key),
-#             int(Taxes.tax_20.value.fiscal_key)
-#         ]
 
 
 class CashPayment(IntEnum):
@@ -67,7 +51,3 @@ class DocumentTypes(IntEnum):
     RETURN = ReturnDocumentType.RETURN
     INSERT = InsertDocumentType.INSERT
     REMOVE = RemoveDocumentType.REMOVE
-
-
-
-

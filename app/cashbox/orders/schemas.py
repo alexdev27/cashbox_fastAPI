@@ -30,7 +30,7 @@ class ResponseCreateOrder(DefaultSuccessResponse, CashierData):
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
     document_type: int = Field(DocumentTypes.PAYMENT, title='Тип документа (оплата)')
     payment_link: str = Field("", title='Ссылка платежа (пустая, если наличный расчет)')
-    order_time: datetime = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-8 09:00:27"')
+    order_time: datetime = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-28 09:00:27"')
     cash_character: str = Field(..., title='Символ кассы. Необходим для совершения заказа/оплаты', min_length=1)
     device_id: str = Field(..., title='Идентификатор устройства (кассы)', min_length=4)
 
@@ -41,4 +41,4 @@ class RequestReturnOrder(CashierData):
 
 
 class ResponseReturnOrder(DefaultSuccessResponse):
-    pass
+    msg: str = Field('Заказ отменен', title='Сообщение об успешной отмене')
