@@ -1,0 +1,8 @@
+{
+  "shopNumber": 9,
+  "timezone": "Asia/Vladivostok",
+  "department": 19,
+  "cashName": "CashMachineOver9000",
+  "comport": "COM9",
+  "comportSpeed": 57600
+}

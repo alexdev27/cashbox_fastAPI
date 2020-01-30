@@ -15,3 +15,11 @@ doc_cash_out = {
     'response_description': 'Изъятие успешно',
     'status_code': HTTP_200_OK,
 }
+
+doc_test_cashbox_init = {
+    # 'response_model': ResponseCashOut,
+    'description': 'Тест Инит Кэшбокс',
+    'summary': 'Тест Инит Кэшбокс',
+    #'response_description': 'Изъятие успешно',
+    'status_code': HTTP_200_OK,
+}

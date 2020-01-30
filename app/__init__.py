@@ -1,12 +1,27 @@
 from fastapi import FastAPI
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
+from aiohttp import ClientSession
 from .schemas import CashboxExceptionSchema
 from .cashbox.insert_remove.api_views import router as insert_remove_router
 from .cashbox.shifts.api_views import router as shifts_router
 from .cashbox.orders.api_views import router as orders_router
 from .custom_responses import response_400
+from .exceptions import CashboxException
+from mongoengine import connect
+# import config
+
+# mongo connection
+connect(
+    db='temp_payment_data',
+    host='localhost',
+    port=27017
+)
 
 app = FastAPI()
+
+aiohttp_requests = ClientSession()
 
 default_prefix = '/api'
 
@@ -51,3 +66,8 @@ def custom_openapi():
 
 
 app.openapi = custom_openapi
+
+
+@app.exception_handler(CashboxException)
+async def handle_cashbox_exception(req: Request, exc: CashboxException):
+    return JSONResponse(content=exc.data, status_code=exc.status_code)
