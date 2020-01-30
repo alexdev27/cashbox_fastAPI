@@ -1,4 +1,14 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
+
+
+class PaygateURLs(Enum):
+    new_order = '/createorder'
+    cancel_order = '/cancelpay',
+    open_shift = '/openshift',
+    close_shift = '/closeshift',
+    insert_cash = '/cashin',
+    remove_cash = '/cashout'
+    register_cash = '/regcash'
 
 
 class FiscalTaxesNumbers(IntEnum):
