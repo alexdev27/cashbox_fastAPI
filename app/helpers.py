@@ -23,7 +23,7 @@ def config_from_json_file(json_filename):
         comportSpeed: int = Field(..., title='Скорость COM порта', gt=0)
 
     _config = JsonConfig(**_temp).dict()
-    print('config ', _config)
+    # print('config ', _config)
     return _config
 
 
@@ -39,7 +39,7 @@ async def make_request(url: str, method: str, data) -> Dict:
     return await result.json()
 
 
-async def make_request_to_paygate(url: str, method: str, data: Dict) -> Dict:
+async def request_to_paygate(url: str, method: str, data: Dict) -> Dict:
     content = await make_request(url, method, data)
     if content['statusCode'] != 200:
         msg = f'Paygate вернул код ответа 500. Сообщение: {content["errorMessage"]}'

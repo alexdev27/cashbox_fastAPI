@@ -1,8 +1,9 @@
 from app.kkt_device.decorators import kkt_comport_activation
-from config import temp_payment_service_url as _url, CASH_SETTINGS as CS
+from config import CASH_SETTINGS as CS
 from app.exceptions import CashboxException
-from app.helpers import make_request_to_paygate, get_WIN_UUID
+from app.helpers import request_to_paygate, get_WIN_UUID
 from .models import Cashbox
+from app.enums import PaygateURLs
 
 
 @kkt_comport_activation()
@@ -18,12 +19,11 @@ async def init_cashbox(*args, **kwargs):
 
     # # proj - номер системы, с которой происходит запрос
     obj = {'shop': shop_num, 'cashID': cash_id, 'systemID': sys_id, 'proj': 1}
-    url = _url + '/regcash'
-    paygate_content = await make_request_to_paygate(url, 'post', obj)
+    paygate_content = await request_to_paygate(PaygateURLs.register_cash, 'post', obj)
 
     cash_num = paygate_content.get('cashNumber')
 
-    cashbox = Cashbox.objects(cashID=cash_id, cashNumber=cash_num).first()
+    cashbox = Cashbox.objects(cash_id=cash_id, cash_number=cash_num).first()
     Cashbox.set_all_inactive()
     if cashbox:
         cashbox.reload()
@@ -31,6 +31,6 @@ async def init_cashbox(*args, **kwargs):
         cashbox.save().reload()
         print('is cashbox active right now? ', cashbox.is_active)
     else:
-        cashbox = Cashbox(shop=CS['shopNumber'], cashNumber=cash_num,
-                          cashName=CS['cashName'], cashID=cash_id)
+        cashbox = Cashbox(shop=CS['shopNumber'], cash_number=cash_num,
+                          cash_name=CS['cashName'], cash_id=cash_id)
         cashbox.save().reload()
