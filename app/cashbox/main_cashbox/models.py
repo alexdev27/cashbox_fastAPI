@@ -1,6 +1,7 @@
 from mongoengine import Document, ReferenceField, DictField, \
     ListField, StringField, BooleanField, DateTimeField, IntField, UUIDField,  FloatField, DENY, URLField
 
+from app.cashbox.shifts.models import OpenShift
 from datetime import datetime
 
 
@@ -16,7 +17,7 @@ class Cashbox(Document):
     cash_id = StringField(required=True)
     project_number = IntField(default=1)
     # closed_shifts = ListField(ReferenceField(CloseShift, reverse_delete_rule=DENY), default=[])
-    # current_opened_shift = ReferenceField(OpenShift, reverse_delete_rule=DENY, default=None)
+    current_opened_shift = ReferenceField(OpenShift, reverse_delete_rule=DENY, default=None)
 
     # data_to_send = ListField(DictField(default={}), default=[])
     meta = {'collection': 'cashbox', 'strict': False}

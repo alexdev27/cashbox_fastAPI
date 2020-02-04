@@ -10,7 +10,9 @@ router = APIRouter()
 @router.post('/open_shift', **doc_open_shift)
 async def open_shift(data: RequestOpenShift):
     kwargs = {'valid_schema_data': data.dict()}
-    resp_data = open_new_shift(**kwargs)
+    resp_data = await open_new_shift(**kwargs)
+    resp_data = {'lol': 'kek'}
+    # return ResponseOpenShift(**resp_data)
     return ResponseOpenShift(**resp_data)
 
 
