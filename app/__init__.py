@@ -7,6 +7,7 @@ from .schemas import CashboxExceptionSchema
 from .cashbox.insert_remove.api_views import router as insert_remove_router
 from .cashbox.shifts.api_views import router as shifts_router
 from .cashbox.orders.api_views import router as orders_router
+from .cashbox.main_cashbox.functions import init_cashbox
 from .custom_responses import response_400
 from .exceptions import CashboxException
 from mongoengine import connect, disconnect
@@ -73,7 +74,17 @@ async def handle_cashbox_exception(req: Request, exc: CashboxException):
     return JSONResponse(content=exc.data, status_code=exc.status_code)
 
 
+@app.on_event('startup')
+async def async_startup():
+    await init_cashbox()
+
+
 @app.on_event('shutdown')
-async def on_shutdown():
+async def async_shutdown():
     await aiohttp_requests.close()
+
+
+@app.on_event('shutdown')
+def sync_shutdown():
     disconnect()
+
