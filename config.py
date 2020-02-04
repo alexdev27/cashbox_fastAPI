@@ -8,7 +8,7 @@ import json
 SECRET_KEY = 'erg434gerg2425t23adrwerwffwer23qw42z'
 
 MONGODB_SETTINGS = {
-    'DB': 'temp_payment_data',
+    'DB': 'temp_payment_data_2',
 }
 
 temp_payment_service_url = 'http://10.21.3.38:8100'

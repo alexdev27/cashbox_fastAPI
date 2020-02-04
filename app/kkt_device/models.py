@@ -10,15 +10,16 @@ def _handle_kkt_errors(func):
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-            if result['error']:
+            if result.get('error'):
                 msg = f'Ошибка при открытии порта: {result["message"]}'
                 raise CashboxException(data=msg)
-            if result['status_printer_error_code'] > 0:
-                code = result['status_printer_error_code']
-                err_msg = result['status_printer_message']
-                msg = f'Ошибка фискального регистратора: ' \
-                      f'Код: {code} Сообщение: {err_msg}'
-                raise CashboxException(data=msg)
+            if result.get('status_printer_error_code'):
+                if result['status_printer_error_code'] > 0:
+                    code = result['status_printer_error_code']
+                    err_msg = result['status_printer_message']
+                    msg = f'Ошибка фискального регистратора: ' \
+                          f'Код: {code} Сообщение: {err_msg}'
+                    raise CashboxException(data=msg)
             return result
         except Exception as exc:
             msg = f'Фискальный регистратор не смог ' \
@@ -39,6 +40,7 @@ class KKTDevice:
     @_handle_kkt_errors
     def close_port(*args, **kwargs):
         real_kkt.close_port()
+        return {}
 
     @staticmethod
     @_handle_kkt_errors
