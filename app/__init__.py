@@ -74,9 +74,9 @@ async def handle_cashbox_exception(req: Request, exc: CashboxException):
     return JSONResponse(content=exc.data, status_code=exc.status_code)
 
 
-@app.on_event('startup')
-async def async_startup():
-    await init_cashbox()
+# @app.on_event('startup')
+# async def async_startup():
+#     await init_cashbox()
 
 
 @app.on_event('shutdown')

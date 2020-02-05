@@ -1,5 +1,6 @@
 from datetime import datetime
-
+from marshmallow_mongoengine import ModelSchema, fields
+from .models import OpenShift, PayGateOpenShift, PayGateCloseShift
 from app.schemas import CashierData, DefaultSuccessResponse
 from pydantic import Field
 
@@ -29,3 +30,15 @@ class ResponseCurrentShiftInfo(DefaultSuccessResponse):
     shift_total_sales: float = Field(..., title='Общее количество продаж за наличку в смене')
     shift_total_returns: float = Field(..., title='Общее количество возвратов денег в смене')
     start_shift_money: float = Field(..., title='Денег в кассе на начало смены')
+
+#
+# class DBPaygateOpenShiftSchema(ModelSchema):
+#     class Meta:
+#         model = PayGateOpenShift
+#
+#
+# class DBOpenShiftSchema(ModelSchema):
+#     class Meta:
+#         model = OpenShift
+#
+#     paygate_data = fields.Nested(DBPaygateOpenShiftSchema)
