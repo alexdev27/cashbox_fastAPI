@@ -32,3 +32,16 @@ class Cashbox(Document):
     def box():
         # return Cashbox.objects().order_by('-activation_date').first()
         return Cashbox.objects(is_active=True).first()
+
+    def save_paygate_data_for_send(self, data):
+        DataToPayGate(data=data).save()
+
+    def set_current_shift(self, shift):
+        self.current_opened_shift = shift
+        self.save()
+
+class DataToPayGate(Document):
+    creation_date = DateTimeField(default=datetime.utcnow())
+    data = DictField(required=True)
+
+    meta = {'collection': 'to_paygate', 'strict': False, 'ordering': ['creation_date']}

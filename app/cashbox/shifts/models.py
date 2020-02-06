@@ -135,7 +135,5 @@ class OpenShift(Document):
         paygate_data.systemID = kwargs['system_id']
         paygate_data.save()
         self.paygate_data = paygate_data
+        self.save().reload()
         return self
-
-    # def save(self, **kwargs):
-    #     pass

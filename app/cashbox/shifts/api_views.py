@@ -11,19 +11,17 @@ router = APIRouter()
 async def open_shift(data: RequestOpenShift):
     kwargs = {'valid_schema_data': data.dict()}
     resp_data = await open_new_shift(**kwargs)
-    resp_data = {'lol': 'kek'}
-    # return ResponseOpenShift(**resp_data)
     return ResponseOpenShift(**resp_data)
 
 
 @router.post('/close_shift', **doc_close_shift)
 async def close_shift(data: RequestCloseShift):
     kwargs = {'valid_schema_data': data.dict()}
-    resp_data = close_current_shift(**kwargs)
+    resp_data = await close_current_shift(**kwargs)
     return ResponseCloseShift(**resp_data)
 
 
 @router.get('/shift_info', **doc_current_shift_info)
 async def current_shift_info():
-    resp_data = get_shift_info()
+    resp_data = await get_shift_info()
     return ResponseCurrentShiftInfo(**resp_data)

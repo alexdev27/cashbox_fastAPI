@@ -32,10 +32,10 @@ class ResponseCurrentShiftInfo(DefaultSuccessResponse):
     start_shift_money: float = Field(..., title='Денег в кассе на начало смены')
 
 #
-# class DBPaygateOpenShiftSchema(ModelSchema):
-#     class Meta:
-#         model = PayGateOpenShift
-#
+class DBPaygateOpenShiftSchema(ModelSchema):
+    class Meta:
+        model = PayGateOpenShift
+
 #
 # class DBOpenShiftSchema(ModelSchema):
 #     class Meta:

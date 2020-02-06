@@ -4,8 +4,9 @@ from typing import Dict, List
 import app
 from pydantic import BaseModel, Field, HttpUrl
 import json
-from aiohttp import ClientError
+from aiohttp import ClientError, ClientSession
 from app.exceptions import CashboxException
+
 
 
 def config_from_json_file(json_filename):
@@ -29,14 +30,20 @@ def config_from_json_file(json_filename):
 
 async def make_request(url: str, method: str, data) -> Dict:
     try:
-        result = await app.aiohttp_requests.request(method, url, json=data)
+        async with ClientSession() as session:
+            async with session.request(method, url, json=data) as result:
+                if result.status >= 400:
+                    err = await result.text()
+                    raise CashboxException(data=err)
+                return await result.json()
+        # result = await app.aiohttp_requests.request(method, url, json=data)
     except ClientError as exc:
         raise CashboxException(data=str(exc))
 
-    if result.status >= 400:
-        err = await result.text()
-        raise CashboxException(data=err)
-    return await result.json()
+    # if result.status >= 400:
+    #     err = await result.text()
+    #     raise CashboxException(data=err)
+    # return await result.json()
 
 
 async def request_to_paygate(url: str, method: str, data: Dict) -> Dict:

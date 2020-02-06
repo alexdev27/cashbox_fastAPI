@@ -4,14 +4,15 @@ from config import temp_payment_service_url as payment_service
 
 class PaygateURLs(Enum):
     new_order = payment_service + '/createorder'
-    cancel_order = payment_service + '/cancelpay',
-    open_shift = payment_service + '/openshift',
-    close_shift = payment_service + '/closeshift',
-    insert_cash = payment_service + '/cashin',
+    cancel_order = payment_service + '/cancelpay'
+    open_shift = payment_service + '/openshift'
+    close_shift = payment_service + '/closeshift'
+    insert_cash = payment_service + '/cashin'
     remove_cash = payment_service + '/cashout'
     register_cash = payment_service + '/regcash'
 
     def __get__(self, instance, owner):
+        print(self.value)
         return self.value
 
 

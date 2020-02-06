@@ -3,6 +3,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
 from aiohttp import ClientSession
+from celery import Celery
+from redis import Redis
 from .schemas import CashboxExceptionSchema
 from .cashbox.insert_remove.api_views import router as insert_remove_router
 from .cashbox.shifts.api_views import router as shifts_router
@@ -20,9 +22,14 @@ connect(
     port=27017
 )
 
-app = FastAPI()
-
+celery = Celery('CeleryApp', broker=config.CELERY_BROKER_URL,
+                backend=config.CELERY_RESULT_BACKEND)
+redis = Redis(host=config.HOSTNAME)
 aiohttp_requests = ClientSession()
+
+redis.flushall()
+app = FastAPI(title='Cashbox on steroids')
+
 
 default_prefix = '/api'
 
@@ -86,5 +93,7 @@ async def async_shutdown():
 
 @app.on_event('shutdown')
 def sync_shutdown():
+    celery.control.purge()
     disconnect()
 
+from .cashbox.main_cashbox.tasks import try_send_to_paygate
