@@ -12,16 +12,14 @@ def setup_periodic(sender, **kwargs):
 
 
 async def try_send_to_paygate():
-    print('inside task')
     copy_of_data = deepcopy(DataToPayGate.objects())
-    print(type(copy_of_data))
     for payment_data in copy_of_data:
         data = payment_data.data
         print(data)
         try:
             await request_to_paygate(data['url'], 'POST', data)
         except CashboxException as exc:
-            msg = f'CashboxException inside Celery task! {exc.data}'
+            msg = f' <<< CashboxException inside Celery task! >>>  {exc.data}'
             print(msg)
             return
         DataToPayGate.objects.get(id=payment_data.id).delete()

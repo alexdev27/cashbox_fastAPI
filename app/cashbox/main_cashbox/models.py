@@ -1,7 +1,9 @@
+from typing import Dict
+
 from mongoengine import Document, ReferenceField, DictField, \
     ListField, StringField, BooleanField, DateTimeField, IntField, UUIDField,  FloatField, DENY, URLField
 
-from app.cashbox.shifts.models import OpenShift
+from app.cashbox.shifts.models import OpenShift, CloseShift
 from datetime import datetime
 
 
@@ -16,7 +18,7 @@ class Cashbox(Document):
     cash_character = StringField()
     cash_id = StringField(required=True)
     project_number = IntField(default=1)
-    # closed_shifts = ListField(ReferenceField(CloseShift, reverse_delete_rule=DENY), default=[])
+    closed_shifts = ListField(ReferenceField(CloseShift, reverse_delete_rule=DENY), default=[])
     current_opened_shift = ReferenceField(OpenShift, reverse_delete_rule=DENY, default=None)
 
     # data_to_send = ListField(DictField(default={}), default=[])
@@ -30,15 +32,22 @@ class Cashbox(Document):
 
     @staticmethod
     def box():
-        # return Cashbox.objects().order_by('-activation_date').first()
         return Cashbox.objects(is_active=True).first()
 
-    def save_paygate_data_for_send(self, data):
+    def save_paygate_data_for_send(self, data: Dict):
         DataToPayGate(data=data).save()
 
-    def set_current_shift(self, shift):
+    def set_current_shift(self, shift: OpenShift):
         self.current_opened_shift = shift
         self.save()
+
+    def close_shift(self, shift: CloseShift):
+        self.closed_shifts.append(shift)
+        self.current_opened_shift.closed = True
+        self.current_opened_shift.save()
+        self.current_opened_shift = None
+        self.save()
+
 
 class DataToPayGate(Document):
     creation_date = DateTimeField(default=datetime.utcnow())
