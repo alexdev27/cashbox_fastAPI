@@ -4,7 +4,9 @@ from mongoengine import Document, ReferenceField, DictField, \
     ListField, StringField, BooleanField, DateTimeField, IntField, UUIDField,  FloatField, DENY, URLField
 
 from app.cashbox.shifts.models import OpenShift, CloseShift
+from app.enums import DocumentTypes
 from datetime import datetime
+from app.helpers import round_half_up
 
 
 class Cashbox(Document):
@@ -51,6 +53,23 @@ class Cashbox(Document):
     def add_cash_operation_to_shift(self, cash_operation):
         self.current_opened_shift.in_out_operations.append(cash_operation)
         self.current_opened_shift.save()
+
+    def update_shift_money_counter(self, operation_number, amount):
+        # Big badass if statement
+        shift = self.current_opened_shift
+        r_func = round_half_up
+
+        if operation_number == DocumentTypes.INSERT:
+            shift.total_inserted_money_in_shift = r_func(shift.total_inserted_money_in_shift + amount, 2)
+        elif operation_number == DocumentTypes.REMOVE:
+            shift.total_removed_money_in_shift = r_func(shift.total_removed_money_in_shift + amount, 2)
+        elif operation_number == DocumentTypes.PAYMENT:
+            shift.total_sales_in_shift = r_func(shift.total_sales_in_shift + amount, 2)
+        elif operation_number == DocumentTypes.RETURN:
+            shift.total_returns_in_shift = r_func(shift.total_returns_in_shift + amount, 2)
+
+        shift.save().reload('total_inserted_money_in_shift', 'total_removed_money_in_shift',
+                            'total_sales_in_shift', 'total_returns_in_shift')
 
 
 class DataToPayGate(Document):
