@@ -4,6 +4,7 @@ from app.exceptions import CashboxException
 from app.helpers import request_to_paygate, get_WIN_UUID
 from .models import Cashbox
 from app.enums import PaygateURLs
+from dateutil import parser
 
 
 @kkt_comport_activation()
@@ -27,10 +28,15 @@ async def init_cashbox(*args, **kwargs):
     Cashbox.set_all_inactive()
     if cashbox:
         cashbox.reload()
+        cashbox.activation_date = parser.parse(result['datetime'])
         cashbox.is_active = True
         cashbox.save().reload()
         print('is cashbox active right now? ', cashbox.is_active)
     else:
-        cashbox = Cashbox(shop=CS['shopNumber'], cash_number=cash_num,
-                          cash_name=CS['cashName'], cash_id=cash_id)
+        cashbox = Cashbox()
+        cashbox.creation_date = parser.parse(result['datetime'])
+        cashbox.shop = CS['shopNumber']
+        cashbox.cash_number = cash_num
+        cashbox.cash_name = CS['cashName']
+        cashbox.cash_id = cash_id
         cashbox.save().reload()
