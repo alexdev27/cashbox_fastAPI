@@ -1,12 +1,26 @@
-from os import popen
-from typing import Dict, List
-
-import app
-from pydantic import BaseModel, Field, HttpUrl
 import json
+import math
+from datetime import timezone
+from os import popen
+from typing import Dict
+
+from pydantic import BaseModel, Field
 from aiohttp import ClientError, ClientSession
 from app.exceptions import CashboxException
 
+
+def round_half_down(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.ceil(n*multiplier - 0.5) / multiplier
+
+
+def round_half_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(n*multiplier + 0.5) / multiplier
+
+
+def utc_to_local(utc_datetime):
+    return utc_datetime.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
 
 def config_from_json_file(json_filename):
@@ -39,11 +53,6 @@ async def make_request(url: str, method: str, data) -> Dict:
         # result = await app.aiohttp_requests.request(method, url, json=data)
     except ClientError as exc:
         raise CashboxException(data=str(exc))
-
-    # if result.status >= 400:
-    #     err = await result.text()
-    #     raise CashboxException(data=err)
-    # return await result.json()
 
 
 async def request_to_paygate(url: str, method: str, data: Dict) -> Dict:
