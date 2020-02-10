@@ -52,7 +52,7 @@ def check_for_closed_shift_in_fiscal(err_if_closed=False):
                 else:
                     return await func(*args, **kwargs)
             else:
-                raise CashboxException(data=' еще открыта')
+                raise CashboxException(data=msg+' еще открыта')
         return wrapper
     return _check_for_closed_shift_in_fiscal
 
@@ -67,9 +67,6 @@ def validate_kkt_state(skip_shift_check=False):
             actual_fiscal_device_number = kwargs['opened_port_info']['fn_number']
             current_fiscal_device_number_in_db = cb.cash_id
             current_shift_in_db = cb.current_opened_shift
-            # current_shift_number = cb.current_opened_shift.paygate_data.shiftNumber
-
-            # print('shiftnumbers ', current_shift_number, current_fiscal_shift_number)
 
             if current_fiscal_device_number_in_db != actual_fiscal_device_number:
                 raise CashboxException(data=ERR_IF_FISCAL_ID_NOT_SYNCED)
@@ -78,8 +75,6 @@ def validate_kkt_state(skip_shift_check=False):
             if is_opened_fiscal_shift:
                 if current_shift_in_db:
                     if current_shift_in_db.paygate_data.shiftNumber != current_fiscal_shift_number:
-                        print(current_shift_in_db.paygate_data.shiftNumber)
-                        print(current_fiscal_shift_number)
                         raise CashboxException(data=ERR_SHIFT_NUMBER_NOT_SYNCED)
                 else:
                     # TODO: Подумать о экстренном закрытии смены на paygate сервисе вместе с фискальиком
