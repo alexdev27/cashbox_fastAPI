@@ -25,7 +25,6 @@ connect(
 celery = Celery('CeleryApp', broker=config.CELERY_BROKER_URL,
                 backend=config.CELERY_RESULT_BACKEND)
 redis = Redis(host=config.HOSTNAME)
-aiohttp_requests = ClientSession()
 
 redis.flushall()
 app = FastAPI(title='Cashbox on steroids')
@@ -88,7 +87,7 @@ async def handle_cashbox_exception(req: Request, exc: CashboxException):
 
 @app.on_event('shutdown')
 async def async_shutdown():
-    await aiohttp_requests.close()
+    pass
 
 
 @app.on_event('shutdown')
