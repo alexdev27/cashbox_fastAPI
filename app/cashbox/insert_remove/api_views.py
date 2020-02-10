@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from .schemas import RequestCashIn, RequestCashOut, ResponseCashIn, ResponseCashOut
 from .doc_kwargs import doc_cash_in, doc_cash_out, doc_test_cashbox_init
-from .functions import handle_insert
+from .functions import handle_insert, handle_remove
 from app.cashbox.main_cashbox.functions import init_cashbox
 
 router = APIRouter()
@@ -16,8 +16,9 @@ async def insert_money(cash_in: RequestCashIn):
 
 @router.post('/cash_out', **doc_cash_out)
 async def remove_money(cash_out: RequestCashOut):
-    kwargs = {'valid_schema_data': cash_out}
-    pass
+    kwargs = {'valid_schema_data': cash_out.dict()}
+    data = await handle_remove(**kwargs)
+    return ResponseCashOut(**data)
 
 
 @router.get('/test_init', **doc_test_cashbox_init)
