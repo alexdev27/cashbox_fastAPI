@@ -1,8 +1,8 @@
+import sys
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
-from aiohttp import ClientSession
 from celery import Celery
 from redis import Redis
 from .schemas import CashboxExceptionSchema
@@ -77,12 +77,20 @@ app.openapi = custom_openapi
 
 @app.exception_handler(CashboxException)
 async def handle_cashbox_exception(req: Request, exc: CashboxException):
+    print('HERE WE GOOO')
     return JSONResponse(content=exc.data, status_code=exc.status_code)
 
 
-# @app.on_event('startup')
-# async def async_startup():
-#     await init_cashbox()
+@app.on_event('startup')
+async def async_startup():
+    try:
+        await init_cashbox()
+    except CashboxException as c_exc:
+        msg = f'{c_exc.__class__.__name__}: {c_exc.data["errors"]}'
+        sys.exit(msg)
+    except Exception as exc:
+        msg = str(exc)
+        sys.exit(msg)
 
 
 @app.on_event('shutdown')
