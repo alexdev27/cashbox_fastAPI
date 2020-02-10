@@ -1,7 +1,7 @@
 
 from mongoengine import Document, ReferenceField, DictField, \
     ListField, StringField, BooleanField, DateTimeField, IntField, FloatField, DENY
-
+from app.cashbox.insert_remove.models import CashOperation
 from datetime import datetime
 from dateutil import parser
 
@@ -54,7 +54,7 @@ class OpenShift(Document):
     total_returns_in_shift = FloatField(default=0)
     start_shift_money = FloatField(default=0)
     # orders = ListField(ReferenceField(Order, reverse_delete_rule=DENY), default=[])
-    # in_out_operations = ListField(ReferenceField(InOutCashOperation, reverse_delete_rule=DENY), default=[])
+    in_out_operations = ListField(ReferenceField(CashOperation, reverse_delete_rule=DENY), default=list())
     paygate_data = ReferenceField(PayGateOpenShift, reverse_delete_rule=DENY)
 
     meta = {'collection': 'opened_shifts', 'strict': False}
