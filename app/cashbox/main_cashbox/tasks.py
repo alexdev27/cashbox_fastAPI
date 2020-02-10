@@ -8,13 +8,14 @@ import asyncio
 
 @celery.on_after_configure.connect
 def setup_periodic(sender, **kwargs):
-    sender.add_periodic_task(10, check_cashbox_info.s(), name='data_to_paygate')
+    sender.add_periodic_task(20, check_cashbox_info.s(), name='data_to_paygate')
 
 
 async def try_send_to_paygate():
     copy_of_data = deepcopy(DataToPayGate.objects())
     for payment_data in copy_of_data:
         data = payment_data.data
+        print('send to ', data['url'])
         try:
             await request_to_paygate(data['url'], 'POST', data)
         except CashboxException as exc:
