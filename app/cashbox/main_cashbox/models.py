@@ -48,6 +48,10 @@ class Cashbox(Document):
         self.current_opened_shift = None
         self.save()
 
+    def add_cash_operation_to_shift(self, cash_operation):
+        self.current_opened_shift.in_out_operations.append(cash_operation)
+        self.current_opened_shift.save()
+
 
 class DataToPayGate(Document):
     creation_date = DateTimeField(default=datetime.utcnow())
