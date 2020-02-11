@@ -1,5 +1,6 @@
 import json
 import math
+from uuid import uuid4
 from datetime import timezone
 from os import popen
 from typing import Dict
@@ -69,3 +70,11 @@ def get_WIN_UUID():
         .strip('\a')\
         .strip('\t')\
         .strip()
+
+
+def get_cheque_number(string):
+    return int(str(string).rsplit('.', maxsplit=1)[-1])
+
+
+def generate_internal_order_id():
+    return str(uuid4())

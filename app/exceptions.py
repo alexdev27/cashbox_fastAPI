@@ -12,3 +12,6 @@ class CashboxException(Exception):
 
         self.data: Dict = CashboxExceptionSchema(errors=errs).dict()
         self.status_code = status_code
+
+    def __str__(self):
+        return self.data['errors'][0]

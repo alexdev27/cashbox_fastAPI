@@ -9,6 +9,7 @@ from .schemas import CashboxExceptionSchema
 from .cashbox.insert_remove.api_views import router as insert_remove_router
 from .cashbox.shifts.api_views import router as shifts_router
 from .cashbox.orders.api_views import router as orders_router
+from .cashbox.main_cashbox.api_views import router as cashbox_router
 from .cashbox.main_cashbox.functions import init_cashbox
 from .custom_responses import response_400
 from .exceptions import CashboxException
@@ -55,6 +56,11 @@ app.include_router(
     responses=response_400,
     tags=['Заказы (совершение оплаты/отмены)'])
 
+app.include_router(
+    router=cashbox_router,
+    prefix=url_with_prefix(),
+    tags=['Другие операции над кассой'])
+
 
 def custom_openapi():
     if app.openapi_schema:
@@ -77,7 +83,6 @@ app.openapi = custom_openapi
 
 @app.exception_handler(CashboxException)
 async def handle_cashbox_exception(req: Request, exc: CashboxException):
-    print('HERE WE GOOO')
     return JSONResponse(content=exc.data, status_code=exc.status_code)
 
 
