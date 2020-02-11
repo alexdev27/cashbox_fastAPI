@@ -24,7 +24,8 @@ def _handle_kkt_errors(func):
         except Exception as exc:
             msg = f'Фискальный регистратор не смог ' \
                   f'выполнить функцию ({func.__name__}) ' \
-                  f'и выбросил исключение:  {str(exc)}'
+                  f'Тип ошибки: {exc.__class__.__name__} ' \
+                  f'Описание: {str(exc)}'
             raise CashboxException(data=msg)
     return wrapper
 
@@ -61,13 +62,13 @@ class KKTDevice:
     @staticmethod
     @_handle_kkt_errors
     def handle_order(*args, **kwargs):
-        cashier = kwargs['cashier']
+        cashier = kwargs['cashier_name']
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']
-        money_given = kwargs.get('money_given', 0)
+        money_given = kwargs.get('amount_entered', 0)
         pay_link = kwargs.get('pay_link', '')
-        pref = kwargs.get('char', '')
+        pref = kwargs.get('order_prefix', '')
         return real_kkt.new_transaction(
             cashier=cashier, payment_type=p_type, doc_type=d_type,
             wares=copy.copy(wares), amount=money_given, rrn=pay_link,
