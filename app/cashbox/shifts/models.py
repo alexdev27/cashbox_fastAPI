@@ -5,6 +5,8 @@ from app.cashbox.insert_remove.models import CashOperation
 from datetime import datetime
 from dateutil import parser
 
+from app.cashbox.orders.models import Order
+
 
 class PayGateOpenShift(Document):
     cashID = StringField(required=True)
@@ -53,7 +55,7 @@ class OpenShift(Document):
     total_sales_in_shift = FloatField(default=0)
     total_returns_in_shift = FloatField(default=0)
     start_shift_money = FloatField(default=0)
-    # orders = ListField(ReferenceField(Order, reverse_delete_rule=DENY), default=[])
+    orders = ListField(ReferenceField(Order, reverse_delete_rule=DENY), default=[])
     in_out_operations = ListField(ReferenceField(CashOperation, reverse_delete_rule=DENY), default=list())
     paygate_data = ReferenceField(PayGateOpenShift, reverse_delete_rule=DENY)
 
