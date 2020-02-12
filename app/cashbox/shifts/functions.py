@@ -25,9 +25,6 @@ async def open_new_shift(*args, **kwargs):
         'system_id': get_WIN_UUID(), 'cash_number': cashbox.cash_number,
         'cash_name': cashbox.cash_name
     }
-    print('osh -> ', open_shift_data)
-    print('kkt -> ', kkt_info)
-
     shift = OpenShift().map_to_fields({**kkt_info, **open_shift_data, **data_to_db})
     cashbox.set_current_shift(shift)
     data_to_paygate = DBPaygateOpenShiftSchema().dump(shift.paygate_data).data
@@ -47,8 +44,6 @@ async def close_current_shift(*args, **kwargs):
     data_to_db = {'cashier_name': cashier_name, 'cashier_id': cashier_id}
     closed_shift = CloseShift().map_to_fields({**kkt_info, **close_shift_data, **data_to_db})
     cashbox.close_shift(closed_shift)
-    print('csh -> ', close_shift_data)
-    print('kkt -> ', kkt_info)
     data_to_paygate = DBPaygateCloseShiftSchema().dump(closed_shift.paygate_data).data
     data_to_paygate.update({'url': PaygateURLs.close_shift})
     cashbox.save_paygate_data_for_send(data_to_paygate)

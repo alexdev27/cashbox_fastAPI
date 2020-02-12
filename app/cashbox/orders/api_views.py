@@ -10,10 +10,12 @@ router = APIRouter()
 async def create_order(order: RequestCreateOrder):
     kwargs = {'valid_schema_data': order.dict()}
     data = await funcs.create_order(**kwargs)
-    # return ResponseReturnOrder(**data)
-    return {}
+    return ResponseCreateOrder(**data)
 
 
 @router.post('/return_order', **doc_return_order)
-async def return_order(data: RequestReturnOrder):
-    pass
+async def return_order(order: RequestReturnOrder):
+    kwargs = {'valid_schema_data': order.dict()}
+    data = await funcs.return_order(**kwargs)
+    return {}
+    # return ResponseReturnOrder(**data)

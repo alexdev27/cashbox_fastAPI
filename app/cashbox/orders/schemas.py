@@ -34,7 +34,7 @@ class RequestCreateOrder(CashierData):
         return v
 
 
-class ResponseCreateOrder(DefaultSuccessResponse, CashierData):
+class ResponseCreateOrder(DefaultSuccessResponse):
     internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа в кассе', min_length=9)
     cheque_number: int = Field(..., title='Номер созданного чека', gt=0)
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
@@ -47,7 +47,7 @@ class ResponseCreateOrder(DefaultSuccessResponse, CashierData):
 
 class RequestReturnOrder(CashierData):
     internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа в кассе', min_length=9)
-    payment_link: str = Field("", title='Ссылка платежа (пустая, если возврат по наличному платежу)')
+    # payment_link: str = Field("", title='Ссылка платежа (пустая, если возврат по наличному платежу)')
 
 
 class ResponseReturnOrder(DefaultSuccessResponse):
@@ -64,3 +64,14 @@ class PaygateOrderSchema(ModelSchema):
 
     class Meta:
         model = Order
+
+
+class ConvertToResponseCreateOrder(ModelSchema):
+    internal_order_uuid = fields.Str(required=True, load_from='clientOrderID')
+    cheque_number = fields.Int(required=True, load_from='checkNumber')
+    payment_type = fields.Int(required=True, load_from='payType')
+    document_type = fields.Int(required=True)
+    payment_link = fields.Str(default='', load_from='payLink')
+    order_time = fields.Str(required=True, load_from='creation_date')
+    cash_character = fields.Str(required=True, load_from='order_prefix')
+    device_id = fields.Str(required=True)

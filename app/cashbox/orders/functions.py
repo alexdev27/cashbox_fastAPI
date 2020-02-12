@@ -1,12 +1,15 @@
-from dateutil import parser
+from copy import deepcopy
 from app.kkt_device.decorators import validate_kkt_state, kkt_comport_activation, \
     check_for_opened_shift_in_fiscal
 from app.kkt_device.models import KKTDevice
 from app.cashbox.main_cashbox.models import Cashbox
 from app.exceptions import CashboxException
-from app.enums import DocumentTypes, PaymentChoices
-from app.helpers import generate_internal_order_id, get_cheque_number, round_half_down
-from .schemas import PaygateOrderSchema
+from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, get_cashbox_tax_from_fiscal_tax
+from app.helpers import generate_internal_order_id, get_cheque_number, \
+    round_half_down, round_half_up, get_WIN_UUID
+from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder
+from .models import Order
+from config import CASH_SETTINGS as CS
 
 from pprint import pprint as pp
 
@@ -28,22 +31,35 @@ async def create_order(*args, **kwargs):
     amount_entered = req_data['amount_entered']
     wares = req_data['wares']
     character = cashbox.cash_character
+    real_money = False
+    price_for_all_with_discount = 0
+    order_prefix = f'{character}-'
+
+    if req_data['payment_type'] == PaymentChoices.CASH:
+        wares, price_for_all_with_discount = find_and_modify_one_ware_with_discount(wares)
+        real_money = True
 
     kkt_kwargs = {
         'cashier_name': cashier_name,
         'payment_type': payment_type,
         'document_type': document_type,
-        'order_prefix': f'{character}-',
+        'order_prefix': order_prefix,
         'amount_entered': amount_entered,
         'wares': wares
     }
 
     created_order = KKTDevice.handle_order(**kkt_kwargs)
+    print('------------=====================')
+    pp('created order')
+    pp(created_order)
+    amount = round_half_down(created_order['transaction_sum'], 2)
+    amount_with_discount = price_for_all_with_discount if price_for_all_with_discount else amount
     data_to_db_and_paygate = {
         'cashier_name': cashier_name,
         'cashier_id': cashier_id,
         'clientOrderID': generate_internal_order_id(),
-        'amount': round_half_down(created_order['transaction_sum'], 2),
+        'amount': amount,
+        'amount_with_discount': amount_with_discount,
         'creation_date': created_order['datetime'],
         'cashID': cashbox.cash_id,
         'checkNumber': get_cheque_number(created_order['check_number']),
@@ -53,11 +69,140 @@ async def create_order(*args, **kwargs):
         'payLink': created_order.get('rrn', ''),
         'payType': payment_type,
         'payd': 1,
-        # 'wares': wares
+        'proj': 1
     }
-    order = PaygateOrderSchema().load(data_to_db_and_paygate).data
+
+    if real_money:
+        cashbox.update_shift_money_counter(PaymentChoices.CASH, amount_with_discount)
+
+    data_to_db_and_paygate.update({'wares': _build_wares(wares)})
+    order, errs = PaygateOrderSchema().load({**kkt_kwargs, **data_to_db_and_paygate})
+    pp('order')
+    pp(order)
+    pp('errs')
+    pp(errs)
+    cashbox.add_order(order)
+    data_to_db_and_paygate.update({'url': PaygateURLs.new_order})
+    cashbox.save_paygate_data_for_send(data_to_db_and_paygate)
+
+    to_response, errs = ConvertToResponseCreateOrder().load(
+        {'device_id': get_WIN_UUID(), **kkt_kwargs, **data_to_db_and_paygate}
+    )
+    return to_response
+
+
+@kkt_comport_activation()
+@validate_kkt_state()
+@check_for_opened_shift_in_fiscal()
+async def return_order(*args, **kwargs):
+    req_data, kkt_info = kwargs['valid_schema_data'], kwargs['opened_port_info']
+
+    cashier_name = req_data['cashier_name']
+    cashier_id = req_data['cashier_id']
+    order_uuid = req_data['internal_order_uuid']
+    doc_type = DocumentTypes.RETURN
+
+    order = Order.objects(clientOrderID=order_uuid).first()
+
+    if not order:
+        msg = 'Нет такого заказа'
+        raise CashboxException(data=msg)
+
+    if order.returned:
+        msg = 'Этот заказ уже был возвращен'
+        raise CashboxException(data=msg)
+
+    order_dict = PaygateOrderSchema().dump(order).data
+
+    wares_to_fiscal = []
+    for ware in order_dict['wares']:
+        pass # TODO: Доделать
+
+    kkt_kwargs = {
+        'cashier_name': cashier_name,
+        'document_type': doc_type,
+        'payment_type': order_dict['payType'],
+        'wares': order_dict['wares'],
+        'amount_entered': order_dict['amount_with_discount'],
+        'pay_link': order_dict['payLink'],
+        'order_prefix': order_dict['order_prefix']
+    }
+    pp('order to remove')
+    pp(order_dict)
+
+    canceled_order = KKTDevice.handle_order(**kkt_kwargs)
+
+    pp('--- canceled order ---')
+    pp(canceled_order)
+
+    order.returned = True
+    order.return_cashier_id = cashier_id
+    order.return_cashier_name = cashier_name
     order.save()
 
 
-async def return_order():
-    pass
+
+
+def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_product=False):
+
+    _wares = deepcopy(wares)
+    total_sum = 0
+    for w in _wares:
+        total_sum = round_half_down(w['price'] * w['quantity'] + total_sum, 2)
+
+    num_dec = round_half_down(float(str(total_sum-int(total_sum))[1:]), 2)
+
+    item = max(_wares, key=lambda x: x['price'])
+
+    if not num_dec:
+        if get_only_one_discounted_product:
+            return {'discountedPrice': 0, 'barcode': item['barcode'],
+                    'discountedSum': 0, 'orderSum': total_sum,
+                    'discountedOrderSum': total_sum}
+        else:
+            return wares
+
+    disc_price = round_half_down(item['price'] - num_dec, 2)
+    total_sum_with_discount = round_half_down(total_sum - num_dec, 2)
+
+    if item['quantity'] == 1:
+        item.update({'discountedPrice': disc_price})
+        item.update({'discount': num_dec})
+    if item['quantity'] > 1:
+        new_ware = deepcopy(item)
+        item.update({'quantity': item['quantity'] - 1})
+        item.update({'discountedPrice': 0})
+        new_ware.update({'discountedPrice': disc_price})
+        new_ware.update({'discount': num_dec})
+        new_ware.update({'quantity': 1})
+        _wares.append(new_ware)
+
+    if get_only_one_discounted_product:
+        _item = max(_wares, key=lambda x: x.get('discountedPrice', 0))
+        return {'barcode': _item['barcode'],
+                'discountedPrice': _item['discountedPrice'],
+                'discountedSum': num_dec,
+                'orderSum': total_sum,
+                'discountedOrderSum': total_sum_with_discount}
+
+    return _wares, total_sum_with_discount
+
+
+def _build_wares(wares):
+    _wares = []
+    copied_wares = deepcopy(wares)
+    for ware in copied_wares:
+        tax_rate = get_cashbox_tax_from_fiscal_tax(int(ware['tax_number']))
+        divi = float(f'{1}.{tax_rate // 10}')
+        multi = tax_rate / 100
+        price_for_all = round_half_down(ware.get('discountedPrice') or ware['price'] * ware['quantity'], 2)
+        tax_sum = round_half_up(price_for_all / divi * multi, 2)
+
+        ware.update({'priceDiscount': ware.get('discountedPrice') or ware['price']})
+        ware.update({'taxRate': tax_rate})
+        ware.update({'taxSum': tax_sum})
+        ware.update({'amount': price_for_all})
+        ware.update({'department': CS['department']})
+        _wares.append(ware)
+
+    return _wares

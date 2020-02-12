@@ -27,6 +27,10 @@ class Order(Document):
     returned = BooleanField(default=False)
     cashier_name = StringField(required=True)
     cashier_id = StringField(required=True)
+    return_cashier_name = StringField(default='')
+    return_cashier_id = StringField(default='')
+    order_prefix = StringField(required=True)
+
     #
     clientOrderID = StringField(default='')
     cardHolder = StringField(default='')
@@ -34,6 +38,7 @@ class Order(Document):
     payLink = StringField(default='')
 
     amount = FloatField(required=True)
+    amount_with_discount = FloatField(required=True)
     payType = IntField(required=True)
     payd = IntField(required=True)
     cashID = StringField(required=True)

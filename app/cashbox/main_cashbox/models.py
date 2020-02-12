@@ -3,6 +3,7 @@ from typing import Dict
 from mongoengine import Document, ReferenceField, DictField, \
     ListField, StringField, BooleanField, DateTimeField, IntField, UUIDField,  FloatField, DENY, URLField
 
+from app.cashbox.orders.models import Order
 from app.cashbox.shifts.models import OpenShift, CloseShift
 from app.enums import DocumentTypes
 from datetime import datetime
@@ -70,6 +71,12 @@ class Cashbox(Document):
 
         shift.save().reload('total_inserted_money_in_shift', 'total_removed_money_in_shift',
                             'total_sales_in_shift', 'total_returns_in_shift')
+
+    def add_order(self, order: Order):
+        shift = self.current_opened_shift
+        shift.orders.append(order)
+        order.save()
+        shift.save()
 
 
 class DataToPayGate(Document):
