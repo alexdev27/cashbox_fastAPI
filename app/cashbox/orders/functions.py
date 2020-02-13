@@ -7,7 +7,7 @@ from app.exceptions import CashboxException
 from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, get_cashbox_tax_from_fiscal_tax
 from app.helpers import generate_internal_order_id, get_cheque_number, \
     round_half_down, round_half_up, get_WIN_UUID
-from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder
+from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder, OrderSchema
 from .models import Order
 from config import CASH_SETTINGS as CS
 
@@ -49,12 +49,9 @@ async def create_order(*args, **kwargs):
     }
 
     created_order = KKTDevice.handle_order(**kkt_kwargs)
-    print('------------=====================')
-    pp('created order')
-    pp(created_order)
     amount = round_half_down(created_order['transaction_sum'], 2)
     amount_with_discount = price_for_all_with_discount if price_for_all_with_discount else amount
-    data_to_db_and_paygate = {
+    data_to_db = {
         'cashier_name': cashier_name,
         'cashier_id': cashier_id,
         'clientOrderID': generate_internal_order_id(),
@@ -69,24 +66,22 @@ async def create_order(*args, **kwargs):
         'payLink': created_order.get('rrn', ''),
         'payType': payment_type,
         'payd': 1,
-        'proj': 1
     }
 
     if real_money:
         cashbox.update_shift_money_counter(PaymentChoices.CASH, amount_with_discount)
 
-    data_to_db_and_paygate.update({'wares': _build_wares(wares)})
-    order, errs = PaygateOrderSchema().load({**kkt_kwargs, **data_to_db_and_paygate})
-    pp('order')
-    pp(order)
-    pp('errs')
-    pp(errs)
+    data_to_db.update({'wares': _build_wares(wares)})
+    order, errs = OrderSchema().load({**kkt_kwargs, **data_to_db})
+
+    to_paygate, _errs = PaygateOrderSchema().dump(order)
+    to_paygate.update({'proj': cashbox.project_number})
+    to_paygate.update({'url': PaygateURLs.new_order})
     cashbox.add_order(order)
-    data_to_db_and_paygate.update({'url': PaygateURLs.new_order})
-    cashbox.save_paygate_data_for_send(data_to_db_and_paygate)
+    cashbox.save_paygate_data_for_send(to_paygate)
 
     to_response, errs = ConvertToResponseCreateOrder().load(
-        {'device_id': get_WIN_UUID(), **kkt_kwargs, **data_to_db_and_paygate}
+        {'device_id': get_WIN_UUID(), **kkt_kwargs, **data_to_db}
     )
     return to_response
 
@@ -100,8 +95,8 @@ async def return_order(*args, **kwargs):
     cashier_name = req_data['cashier_name']
     cashier_id = req_data['cashier_id']
     order_uuid = req_data['internal_order_uuid']
-    doc_type = DocumentTypes.RETURN
-
+    doc_type = DocumentTypes.RETURN.value
+    cashbox = Cashbox.box()
     order = Order.objects(clientOrderID=order_uuid).first()
 
     if not order:
@@ -112,12 +107,7 @@ async def return_order(*args, **kwargs):
         msg = 'Этот заказ уже был возвращен'
         raise CashboxException(data=msg)
 
-    order_dict = PaygateOrderSchema().dump(order).data
-
-    wares_to_fiscal = []
-    for ware in order_dict['wares']:
-        pass # TODO: Доделать
-
+    order_dict = OrderSchema().dump(order).data
     kkt_kwargs = {
         'cashier_name': cashier_name,
         'document_type': doc_type,
@@ -127,20 +117,24 @@ async def return_order(*args, **kwargs):
         'pay_link': order_dict['payLink'],
         'order_prefix': order_dict['order_prefix']
     }
-    pp('order to remove')
-    pp(order_dict)
-
     canceled_order = KKTDevice.handle_order(**kkt_kwargs)
 
-    pp('--- canceled order ---')
-    pp(canceled_order)
+    _order, err = OrderSchema().update(obj=order, data={
+        'returned': True,
+        'return_cashier_id': cashier_id,
+        'return_cashier_name': cashier_name,
+        'return_date': canceled_order['datetime']
+    })
 
-    order.returned = True
-    order.return_cashier_id = cashier_id
-    order.return_cashier_name = cashier_name
-    order.save()
+    _order.save().reload()
 
-
+    to_paygate = PaygateOrderSchema(only=[
+        'clientOrderID', 'cashID', 'checkNumber'
+    ]).dump(_order).data
+    to_paygate.update({'proj': cashbox.project_number})
+    to_paygate.update({'url': PaygateURLs.cancel_order})
+    cashbox.save_paygate_data_for_send(to_paygate)
+    return {}
 
 
 def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_product=False):
