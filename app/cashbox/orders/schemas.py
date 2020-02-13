@@ -54,9 +54,23 @@ class ResponseReturnOrder(DefaultSuccessResponse):
     msg: str = Field('Заказ отменен', title='Сообщение об успешной отмене')
 
 
+class WareSchema(ModelSchema):
+    class Meta:
+        model = Ware
+
+
+class OrderSchema(ModelSchema):
+    wares = fields.Nested(WareSchema, many=True)
+
+    class Meta:
+        model = Order
+
+
 class PaygateWareSchema(ModelSchema):
     class Meta:
         model = Ware
+        model_build_obj = False
+        exclude = ['tax_number']
 
 
 class PaygateOrderSchema(ModelSchema):
@@ -64,6 +78,9 @@ class PaygateOrderSchema(ModelSchema):
 
     class Meta:
         model = Order
+        model_build_obj = False
+        fields = ['clientOrderID', 'cardHolder', 'pan', 'payLink',
+                  'amount', 'payType', 'payd', 'cashID', 'checkNumber', 'wares']
 
 
 class ConvertToResponseCreateOrder(ModelSchema):
