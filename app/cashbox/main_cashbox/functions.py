@@ -41,6 +41,7 @@ async def init_cashbox(*args, **kwargs):
         cashbox.cash_number = cash_num
         cashbox.cash_name = CS['cashName']
         cashbox.cash_id = cash_id
+        cashbox.project_number = obj['proj']
         cashbox.save().reload()
 
 
