@@ -17,5 +17,4 @@ async def create_order(order: RequestCreateOrder):
 async def return_order(order: RequestReturnOrder):
     kwargs = {'valid_schema_data': order.dict()}
     data = await funcs.return_order(**kwargs)
-    return {}
-    # return ResponseReturnOrder(**data)
+    return ResponseReturnOrder(**data)
