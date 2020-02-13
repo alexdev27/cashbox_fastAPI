@@ -35,6 +35,15 @@ def get_cashbox_tax_from_fiscal_tax(num: int):
         return CashboxTaxesNumbers.tax_20_percent.value
 
 
+def get_fiscal_tax_from_cashbox_tax(num: int):
+    if CashboxTaxesNumbers.tax_10_percent == num:
+        return FiscalTaxesNumbers.tax_10_percent.value
+    elif CashboxTaxesNumbers.tax_20_percent == num:
+        return FiscalTaxesNumbers.tax_20_percent.value
+    else:
+        return FiscalTaxesNumbers.tax_20_percent.value
+
+
 class CashPayment(IntEnum):
     """ Тип оплаты: Наличный расчет """
     CASH = 0
