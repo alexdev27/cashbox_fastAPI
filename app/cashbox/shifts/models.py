@@ -108,7 +108,7 @@ class CloseShift(Document):
         shift.docNumber = data['doc_number']
         shift.cashBalanceClose = data['cash_balance']
         shift.totalSellClose = float(data['progressive_total_sales'])
-        shift.totalReturnClose = data['progressive_total_returns']
+        shift.totalReturnClose = float(data['progressive_total_returns'])
         shift.inAmount = data['sum_insert']
         shift.outAmount = data['sum_remove']
         shift.inCount = data['count_insert']
