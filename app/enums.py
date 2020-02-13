@@ -12,7 +12,6 @@ class PaygateURLs(Enum):
     register_cash = payment_service + '/regcash'
 
     def __get__(self, instance, owner):
-        print(self.value)
         return self.value
 
 
