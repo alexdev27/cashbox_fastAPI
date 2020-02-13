@@ -13,6 +13,7 @@ class Ware(Document):
     barcode = StringField(required=True)
     priceDiscount = FloatField(required=True)
     discount = FloatField(default=0)
+    tax_number = IntField(required=True)
     taxRate = FloatField(required=True)
     taxSum = FloatField(required=True)
     amount = FloatField(required=True)
@@ -23,6 +24,7 @@ class Ware(Document):
 class Order(Document):
     # поля для внутреннего использования
     creation_date = DateTimeField(default=datetime.utcnow())
+    return_date = DateTimeField()
     sent_to_server = BooleanField(default=False)
     returned = BooleanField(default=False)
     cashier_name = StringField(required=True)
@@ -32,7 +34,7 @@ class Order(Document):
     order_prefix = StringField(required=True)
 
     #
-    clientOrderID = StringField(default='')
+    clientOrderID = StringField(required=True)
     cardHolder = StringField(default='')
     pan = StringField(default='')
     payLink = StringField(default='')
