@@ -53,3 +53,7 @@ async def register_cashbox_character(*args, **kwargs):
     cashbox.cash_character = char
     cashbox.save()
     return {'character': char}
+
+
+async def get_sys_id():
+    return {'device_id': get_WIN_UUID()}
