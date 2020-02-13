@@ -1,7 +1,7 @@
 from typing import Dict
 
 from mongoengine import Document, ReferenceField, DictField, \
-    ListField, StringField, BooleanField, DateTimeField, IntField, UUIDField,  FloatField, DENY, URLField
+    ListField, StringField, BooleanField, DateTimeField, IntField, DENY
 
 from app.cashbox.orders.models import Order
 from app.cashbox.shifts.models import OpenShift, CloseShift
@@ -41,10 +41,12 @@ class Cashbox(Document):
         DataToPayGate(data=data).save()
 
     def set_current_shift(self, shift: OpenShift):
+        shift.save().reload()
         self.current_opened_shift = shift
         self.save()
 
     def close_shift(self, shift: CloseShift):
+        shift.save().reload()
         self.closed_shifts.append(shift)
         self.current_opened_shift.closed = True
         self.current_opened_shift.save()
