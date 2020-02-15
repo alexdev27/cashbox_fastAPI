@@ -74,7 +74,7 @@ def validate_kkt_state(skip_shift_check=False):
                 return await func(*args, **kwargs)
             if is_opened_fiscal_shift:
                 if current_shift_in_db:
-                    if current_shift_in_db.paygate_data.shiftNumber != current_fiscal_shift_number:
+                    if current_shift_in_db.shiftNumber != current_fiscal_shift_number:
                         raise CashboxException(data=ERR_SHIFT_NUMBER_NOT_SYNCED)
                 else:
                     # TODO: Подумать о экстренном закрытии смены на paygate сервисе вместе с фискальиком
