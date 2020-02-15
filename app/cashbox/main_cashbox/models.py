@@ -54,6 +54,7 @@ class Cashbox(Document):
         self.save()
 
     def add_cash_operation_to_shift(self, cash_operation):
+        cash_operation.save().reload()
         self.current_opened_shift.in_out_operations.append(cash_operation)
         self.current_opened_shift.save()
 
