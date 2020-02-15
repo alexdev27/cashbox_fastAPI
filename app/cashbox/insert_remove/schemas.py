@@ -1,7 +1,8 @@
 from pydantic import Field
+
+from .models import CashOperation
 from app.schemas import CashierData, DefaultSuccessResponse
 from marshmallow_mongoengine import ModelSchema, fields
-from .models import PayGateCashOperation
 
 
 class RequestCashIn(CashierData):
@@ -22,14 +23,11 @@ class ResponseCashOut(DefaultSuccessResponse):
     msg: str = Field('Успешно', title='Сообщение о совершенной операции')
 
 
-class DBPaygateCashOperation(ModelSchema):
+class CashOperationSchema(ModelSchema):
+    creation_date = fields.DateTime(load_from='datetime', required=True)
+    cashID = fields.Str(load_from='fn_number', required=True)
+
     class Meta:
-        model = PayGateCashOperation
+        model = CashOperation
 
 
-class DBPaygateCashInSchema(DBPaygateCashOperation):
-    pass
-
-
-class DBPaygateCashOutSchema(DBPaygateCashOperation):
-    pass
