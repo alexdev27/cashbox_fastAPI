@@ -4,7 +4,18 @@ from app.kkt_device.models import KKTDevice
 from .constants import ERR_DB_SHIFT_OPENED_BUT_NOT_IN_FISCAL, ERR_FISCAL_SHIFT_OPENED_BUT_NOT_IN_DB, \
     ERR_SHIFT_NUMBER_NOT_SYNCED, ERR_IF_FISCAL_ID_NOT_SYNCED
 from app.cashbox.main_cashbox.models import Cashbox
+
+from app.helpers import request_to_paygate
+from app.enums import PaygateURLs
+
 from pprint import pprint as pp
+
+
+async def _just_close_any_shift_by_fn_number(fn_num):
+    try:
+        await request_to_paygate(PaygateURLs.close_shift, 'POST', {'cashID': fn_num})
+    except Exception as exc:
+        pass
 
 
 def kkt_comport_activation():
@@ -79,12 +90,14 @@ def validate_kkt_state(skip_shift_check=False):
                 else:
                     # TODO: Подумать о экстренном закрытии смены на paygate сервисе вместе с фискальиком
                     KKTDevice.force_close_shift()
+                    await _just_close_any_shift_by_fn_number(current_fiscal_device_number_in_db)
                     msg = f'{ERR_FISCAL_SHIFT_OPENED_BUT_NOT_IN_DB}. ' \
                           f'Смена закрыта принудительно. ' \
                           f'Теперь откройте смену'
                     raise CashboxException(data=msg)
             else:
                 if current_shift_in_db:
+                    await _just_close_any_shift_by_fn_number(current_fiscal_device_number_in_db)
                     cb.current_opened_shift = None
                     cb.save()
                     raise CashboxException(data=ERR_DB_SHIFT_OPENED_BUT_NOT_IN_FISCAL)
