@@ -5,6 +5,7 @@ from app.enums import PaymentChoices, DocumentTypes, FiscalTaxesNumbers, ReturnD
 from app.schemas import DefaultSuccessResponse, CashierData
 from .models import Ware, Order
 from marshmallow_mongoengine import ModelSchema, fields
+from marshmallow import Schema
 
 
 class RequestWares(BaseModel):
@@ -39,6 +40,7 @@ class ResponseCreateOrder(DefaultSuccessResponse):
     cheque_number: int = Field(..., title='Номер созданного чека', gt=0)
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
     document_type: int = Field(DocumentTypes.PAYMENT, title='Тип документа (оплата)')
+    cashier_name: str = Field(..., title='ФИО кассира')
     payment_link: str = Field("", title='Ссылка платежа (пустая, если наличный расчет)')
     order_time: datetime = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-28 09:00:27"')
     cash_character: str = Field(..., title='Символ кассы. Необходим для совершения заказа/оплаты', min_length=1)
@@ -83,11 +85,12 @@ class PaygateOrderSchema(ModelSchema):
                   'amount', 'payType', 'payd', 'cashID', 'checkNumber', 'wares']
 
 
-class ConvertToResponseCreateOrder(ModelSchema):
+class ConvertToResponseCreateOrder(Schema):
     internal_order_uuid = fields.Str(required=True, load_from='clientOrderID')
     cheque_number = fields.Int(required=True, load_from='checkNumber')
     payment_type = fields.Int(required=True, load_from='payType')
     document_type = fields.Int(required=True)
+    cashier_name = fields.Str(required=True)
     payment_link = fields.Str(default='', load_from='payLink')
     order_time = fields.Str(required=True, load_from='creation_date')
     cash_character = fields.Str(required=True, load_from='order_prefix')
