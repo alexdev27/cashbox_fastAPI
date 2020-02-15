@@ -6,6 +6,11 @@ from app import celery
 import asyncio
 
 
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
+
+
 @celery.on_after_configure.connect
 def setup_periodic(sender, **kwargs):
     sender.add_periodic_task(20, check_cashbox_info.s(), name='data_to_paygate')
@@ -25,6 +30,6 @@ async def try_send_to_paygate():
         DataToPayGate.objects.get(id=payment_data.id).delete()
 
 
-@celery.task(ignore_results=True)
+@celery.task(ignore_results=True, name='check_unsent_data')
 def check_cashbox_info():
     asyncio.run(try_send_to_paygate())
