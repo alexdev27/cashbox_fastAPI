@@ -15,6 +15,8 @@ from .custom_responses import response_400
 from .exceptions import CashboxException
 from mongoengine import connect, disconnect
 import config
+from .logging import get_logger
+startup_logger = get_logger('startup.log', 'startup_error_logger')
 
 # mongo connection
 connect(
@@ -92,9 +94,11 @@ async def async_startup():
         await init_cashbox()
     except CashboxException as c_exc:
         msg = f'{c_exc.__class__.__name__}: {c_exc.data["errors"]}'
+        startup_logger.error(msg)
         sys.exit(msg)
     except Exception as exc:
         msg = str(exc)
+        startup_logger.error(msg)
         sys.exit(msg)
 
 
