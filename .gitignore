@@ -8,7 +8,7 @@ env
 venv
 *.sublime*
 /.idea
-**/*.log
+**/*.log*
 cash-conf.json
 **/*.pid
 **/*.rdb
