@@ -1,6 +1,8 @@
+from typing import List
 from fastapi import APIRouter
-from .doc_kwargs import doc_create_order, doc_return_order
-from .schemas import RequestCreateOrder, RequestReturnOrder, ResponseCreateOrder, ResponseReturnOrder
+from .doc_kwargs import doc_create_order, doc_return_order, doc_round_price
+from .schemas import RequestCreateOrder, RequestReturnOrder, \
+    ResponseCreateOrder, ResponseReturnOrder, RequestWares, ResponseRoundPrice
 from . import functions as funcs
 
 router = APIRouter()
@@ -18,3 +20,10 @@ async def return_order(order: RequestReturnOrder):
     kwargs = {'valid_schema_data': order.dict()}
     data = await funcs.return_order(**kwargs)
     return ResponseReturnOrder(**data)
+
+
+@router.post('/round_price', **doc_round_price)
+async def round_price(wares: List[RequestWares]):
+    kwargs = {'valid_schema_data': [ware.dict() for ware in wares]}
+    data = await funcs.round_price(**kwargs)
+    return ResponseRoundPrice(**data)
