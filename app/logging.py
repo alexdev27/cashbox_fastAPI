@@ -42,8 +42,14 @@ def logging_decorator(logger):
             try:
                 return await func(*args, **kwargs)
             except CashboxException as exc:
-                msg = f'Возникло исключение {exc.__class__.__name__}.' \
-                      f' Информация: {exc.data["errors"]}'
+
+                data_from_request = kwargs.get('valid_schema_data', '')
+
+                msg = f'Возникло исключение {exc.__class__.__name__}. \n' \
+                      f'Информация из ошибки: {exc.data["errors"]} \n'
+
+                if data_from_request:
+                    msg += f'Данные с запроса: {data_from_request}'
                 logger.error(msg)
                 raise
         return wrapper
