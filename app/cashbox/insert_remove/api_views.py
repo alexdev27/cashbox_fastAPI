@@ -20,8 +20,3 @@ async def remove_money(cash_out: RequestCashOut):
     data = await handle_remove(**kwargs)
     return ResponseCashOut(**data)
 
-
-@router.get('/test_init', **doc_test_cashbox_init)
-async def test_init():
-    data = await init_cashbox()
-    return data
