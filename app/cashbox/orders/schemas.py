@@ -56,6 +56,19 @@ class ResponseReturnOrder(DefaultSuccessResponse):
     msg: str = Field('Заказ отменен', title='Сообщение об успешной отмене')
 
 
+# class RequestRoundPrice(RequestWares):
+#     pass
+
+
+class ResponseRoundPrice(DefaultSuccessResponse):
+    barcode: str = Field(..., title='Баркод округлённого товара')
+    discounted_price: float = Field(..., title='Сумма позиции со скидкой')
+    discounted_sum: float = Field(..., title='Сумма скидки')
+    order_sum: float = Field(..., title='Сумма заказа без скидки')
+    discounted_order_sum: float = Field(..., title='Сумма заказа со скидкой')
+
+
+
 class WareSchema(ModelSchema):
     class Meta:
         model = Ware
