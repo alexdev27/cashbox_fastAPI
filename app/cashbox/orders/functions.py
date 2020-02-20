@@ -10,15 +10,20 @@ from app.helpers import generate_internal_order_id, get_cheque_number, \
 from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder, OrderSchema
 from .models import Order
 from config import CASH_SETTINGS as CS
+from app.logging import logging_decorator
 
-from pprint import pprint as pp
+from app.logging import get_logger
+
+order_logger = get_logger('order_logs.log', 'order_logger')
 
 
+@logging_decorator(order_logger)
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
 async def create_order(*args, **kwargs):
     cashbox = Cashbox.box()
+    # raise CashboxException(data='Holy Shield')
     if not cashbox.cash_character:
         msg = 'Символ кассы отсутствует. Зарегистрируйте'
         raise CashboxException(data=msg)
@@ -86,6 +91,7 @@ async def create_order(*args, **kwargs):
     return to_response
 
 
+@logging_decorator(order_logger)
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
@@ -135,6 +141,13 @@ async def return_order(*args, **kwargs):
     to_paygate.update({'url': PaygateURLs.cancel_order})
     cashbox.save_paygate_data_for_send(to_paygate)
     return {}
+
+
+@logging_decorator(order_logger)
+async def round_price(*args, **kwargs):
+    req_data = kwargs['valid_schema_data']
+    data = find_and_modify_one_ware_with_discount(req_data, True)
+    return data
 
 
 def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_product=False):
