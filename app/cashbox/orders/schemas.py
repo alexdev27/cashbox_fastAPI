@@ -62,11 +62,10 @@ class ResponseReturnOrder(DefaultSuccessResponse):
 
 class ResponseRoundPrice(DefaultSuccessResponse):
     barcode: str = Field(..., title='Баркод округлённого товара')
-    discounted_price: float = Field(..., title='Сумма позиции со скидкой')
-    discounted_sum: float = Field(..., title='Сумма скидки')
-    order_sum: float = Field(..., title='Сумма заказа без скидки')
-    discounted_order_sum: float = Field(..., title='Сумма заказа со скидкой')
-
+    discountedPrice: float = Field(..., title='Сумма позиции со скидкой')
+    discountedSum: float = Field(..., title='Сумма скидки')
+    orderSum: float = Field(..., title='Сумма заказа без скидки')
+    discountedOrderSum: float = Field(..., title='Сумма заказа со скидкой')
 
 
 class WareSchema(ModelSchema):
