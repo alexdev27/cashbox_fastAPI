@@ -8,6 +8,7 @@ from fastapi.openapi.docs import (
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
+from starlette.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from celery import Celery
 from redis import Redis
@@ -71,6 +72,14 @@ async def redoc_html():
 def url_with_prefix(url: str = '') -> str:
     return f'{default_prefix}{url}'
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(
     router=insert_remove_router,
