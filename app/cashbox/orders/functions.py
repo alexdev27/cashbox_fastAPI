@@ -4,13 +4,15 @@ from app.kkt_device.decorators import validate_kkt_state, kkt_comport_activation
 from app.kkt_device.models import KKTDevice
 from app.cashbox.main_cashbox.models import Cashbox
 from app.exceptions import CashboxException
-from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, get_cashbox_tax_from_fiscal_tax
+from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, \
+    get_cashbox_tax_from_fiscal_tax, get_fiscal_tax_from_cashbox_tax
 from app.helpers import generate_internal_order_id, get_cheque_number, \
     round_half_down, round_half_up, get_WIN_UUID
 from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder, OrderSchema
 from .models import Order
 from config import CASH_SETTINGS as CS
 from app.logging import logging_decorator
+from pprint import pprint as pp
 
 from app.logging import get_logger
 
@@ -44,6 +46,8 @@ async def create_order(*args, **kwargs):
         wares, price_for_all_with_discount = find_and_modify_one_ware_with_discount(wares)
         real_money = True
 
+    wares = _build_wares(wares)
+
     kkt_kwargs = {
         'cashier_name': cashier_name,
         'payment_type': payment_type,
@@ -76,7 +80,7 @@ async def create_order(*args, **kwargs):
     if real_money:
         cashbox.update_shift_money_counter(PaymentChoices.CASH, amount_with_discount)
 
-    data_to_db.update({'wares': _build_wares(wares)})
+    # data_to_db.update({'wares': _build_wares(wares)})
     order, errs = OrderSchema().load({**kkt_kwargs, **data_to_db})
 
     to_paygate, _errs = PaygateOrderSchema().dump(order)
@@ -123,6 +127,8 @@ async def return_order(*args, **kwargs):
         'pay_link': order_dict['payLink'],
         'order_prefix': order_dict['order_prefix']
     }
+    pp(kkt_kwargs['wares'])
+    raise CashboxException(data='Test!')
     canceled_order = KKTDevice.handle_order(**kkt_kwargs)
 
     _order, err = OrderSchema().update(obj=order, data={
@@ -199,7 +205,8 @@ def _build_wares(wares):
     _wares = []
     copied_wares = deepcopy(wares)
     for ware in copied_wares:
-        tax_rate = get_cashbox_tax_from_fiscal_tax(int(ware['tax_number']))
+        # tax_rate = get_cashbox_tax_from_fiscal_tax(int(ware['tax_number']))
+        tax_rate = int(ware['tax_rate'])
         divi = float(f'{1}.{tax_rate // 10}')
         multi = tax_rate / 100
         price_for_all = round_half_down(ware.get('discountedPrice') or ware['price'] * ware['quantity'], 2)
@@ -208,6 +215,7 @@ def _build_wares(wares):
         ware.update({'priceDiscount': ware.get('discountedPrice') or ware['price']})
         ware.update({'taxRate': tax_rate})
         ware.update({'taxSum': tax_sum})
+        ware.update({'tax_number': get_fiscal_tax_from_cashbox_tax(tax_rate)})
         ware.update({'amount': price_for_all})
         ware.update({'department': CS['department']})
         _wares.append(ware)

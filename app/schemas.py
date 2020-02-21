@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class CashboxExceptionSchema(BaseModel):
+    from_cashbox: bool = Field(True, title='Флаг "это из кассы". Временный костыль')
     error: bool = Field(True, title='Что-то пошло не так. Например, не найден ID сущности в базе')
     errors: List[str] = Field(..., title='Описание ошибок')
 

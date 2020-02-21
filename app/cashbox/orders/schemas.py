@@ -1,11 +1,13 @@
 from typing import Union, List
 from datetime import datetime
 from pydantic import Field, BaseModel, validator, ValidationError
-from app.enums import PaymentChoices, DocumentTypes, FiscalTaxesNumbers, ReturnDocumentType
+from app.enums import PaymentChoices, DocumentTypes, \
+    FiscalTaxesNumbers, ReturnDocumentType, CashboxTaxesNumbers
 from app.schemas import DefaultSuccessResponse, CashierData
 from .models import Ware, Order
 from marshmallow_mongoengine import ModelSchema, fields
 from marshmallow import Schema
+from app.cashbox.main_cashbox.models import Cashbox
 
 
 class RequestWares(BaseModel):
@@ -14,14 +16,18 @@ class RequestWares(BaseModel):
     code: str = Field(..., title='Локальный код товара', min_length=4)
     quantity: int = Field(..., title='Количество', ge=1)
     price: float = Field(..., title='Цена товара', ge=0.5)
-    tax_number: FiscalTaxesNumbers = Field(..., title='Номер налога (настоящий номер налога в фискальном регистраторе)')
+    tax_rate: CashboxTaxesNumbers = Field(..., title='Налоговаяя ставка')
+    # tax_number: FiscalTaxesNumbers = Field(..., title='Номер налога (настоящий номер налога в фискальном регистраторе)')
 
 
 class ResponseWares:
     pass
 
 
-class RequestCreateOrder(CashierData):
+class RequestCreateOrder(BaseModel):
+    cashier_name: str = Field('', title='ФИО даныые кассира. Возмется из текущей смены, если не передано', min_length=3)
+    cashier_id: str = Field('', title='Идентификатор кассира. Возмется из текущей смены, если не передано', min_length=3)
+
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
     amount_entered: float = Field(0, title='Если наличный расчет, то это поле показывает сколько денег дал клиент')
     wares: List[RequestWares] = Field(..., title='Список позиций в покупке', min_items=1)
@@ -34,6 +40,15 @@ class RequestCreateOrder(CashierData):
                                  f'if it is payment with real money')
         return v
 
+    @validator('cashier_id', pre=True)
+    def check_cashier(cls, v, values, **kwargs):
+        print('+++++++')
+        # TODO доделать
+        print(v, values, kwargs)
+
+        # if bool(v) and bool(values['cashier_name']):
+        #     pass
+        return v
 
 class ResponseCreateOrder(DefaultSuccessResponse):
     internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа в кассе', min_length=9)
