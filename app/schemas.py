@@ -10,8 +10,8 @@ class CashboxExceptionSchema(BaseModel):
 
 
 class CashierData(BaseModel):
-    cashier_name: str = Field(..., title='ФИО даныые кассира', min_length=3)
-    cashier_id: str = Field(..., title='Идентификатор кассира', min_length=3)
+    cashier_name: str = Field(..., title='ФИО даныые кассира', min_length=2)
+    cashier_id: str = Field(..., title='Идентификатор кассира', min_length=2)
 
 
 class DefaultSuccessResponse(BaseModel):

@@ -23,7 +23,6 @@ from .exceptions import CashboxException
 from mongoengine import connect, disconnect
 import config
 from .logging import get_logger
-startup_logger = get_logger('startup.log', 'startup_error_logger')
 
 # mongo connection
 connect(
@@ -131,6 +130,7 @@ async def handle_cashbox_exception(req: Request, exc: CashboxException):
 
 @app.on_event('startup')
 async def async_startup():
+    startup_logger = get_logger('startup.log', 'startup_error_logger')
     try:
         await init_cashbox()
     except CashboxException as c_exc:
