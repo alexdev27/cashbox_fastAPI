@@ -24,9 +24,10 @@ class ResponseWares:
     pass
 
 
+
 class RequestCreateOrder(BaseModel):
-    cashier_name: str = Field('', title='ФИО даныые кассира. Возмется из текущей смены, если не передано', min_length=3)
-    cashier_id: str = Field('', title='Идентификатор кассира. Возмется из текущей смены, если не передано', min_length=3)
+    cashier_name: str = Field('', title='ФИО даныые кассира. Возмется из текущей смены, если не передано')
+    cashier_id: str = Field('', title='Идентификатор кассира. Возмется из текущей смены, если не передано')
 
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
     amount_entered: float = Field(0, title='Если наличный расчет, то это поле показывает сколько денег дал клиент')
@@ -40,15 +41,22 @@ class RequestCreateOrder(BaseModel):
                                  f'if it is payment with real money')
         return v
 
-    @validator('cashier_id', pre=True)
+    @validator('payment_type', pre=True)
     def check_cashier(cls, v, values, **kwargs):
         print('+++++++')
         # TODO доделать
         print(v, values, kwargs)
-
-        # if bool(v) and bool(values['cashier_name']):
+        # values['cashier_name'] = '14124234'
+        # values['cashier_id'] = '14WERwerwer'
+        #
+        # if bool() and bool(values.get('cashier_name', '')):
         #     pass
         return v
+
+
+class RequestCashSettlementCreateOrder():
+    pass
+
 
 class ResponseCreateOrder(DefaultSuccessResponse):
     internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа в кассе', min_length=9)
