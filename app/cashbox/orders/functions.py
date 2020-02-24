@@ -14,12 +14,8 @@ from config import CASH_SETTINGS as CS
 from app.logging import logging_decorator
 from pprint import pprint as pp
 
-from app.logging import get_logger
 
-order_logger = get_logger('order_logs.log', 'order_logger')
-
-
-@logging_decorator(order_logger)
+@logging_decorator('order_logs.log', 'order_logger')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
@@ -95,7 +91,7 @@ async def create_order(*args, **kwargs):
     return to_response
 
 
-@logging_decorator(order_logger)
+@logging_decorator('order_logs.log', 'order_logger')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
@@ -127,8 +123,7 @@ async def return_order(*args, **kwargs):
         'pay_link': order_dict['payLink'],
         'order_prefix': order_dict['order_prefix']
     }
-    pp(kkt_kwargs['wares'])
-    raise CashboxException(data='Test!')
+
     canceled_order = KKTDevice.handle_order(**kkt_kwargs)
 
     _order, err = OrderSchema().update(obj=order, data={
@@ -149,7 +144,7 @@ async def return_order(*args, **kwargs):
     return {}
 
 
-@logging_decorator(order_logger)
+@logging_decorator('order_logs.log', 'order_logger')
 async def round_price(*args, **kwargs):
     req_data = kwargs['valid_schema_data']
     data = find_and_modify_one_ware_with_discount(req_data, True)

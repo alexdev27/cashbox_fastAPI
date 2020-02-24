@@ -1,3 +1,4 @@
+import concurrent.futures
 import logging
 import sys
 import os
@@ -5,8 +6,13 @@ from functools import wraps
 from .exceptions import CashboxException
 from logging.handlers import TimedRotatingFileHandler
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
-
 LOGS_DIR = os.path.expanduser('~') + '/steakhouse_logs'
+
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+# Track logging filenames
+log_filenames = []
+
 
 # make logs dir
 if not os.path.exists(LOGS_DIR):
@@ -27,6 +33,12 @@ def get_file_handler(filename):
 
 def get_logger(filename, logger_name):
     logger = logging.getLogger(logger_name)
+
+    if filename in log_filenames:
+        return logger
+    else:
+        log_filenames.append(filename)
+
     logger.setLevel(logging.DEBUG)  # better to have too much log than not enough
     logger.addHandler(get_console_handler())
     logger.addHandler(get_file_handler(f'{LOGS_DIR}/{filename}'))
@@ -35,7 +47,7 @@ def get_logger(filename, logger_name):
     return logger
 
 
-def logging_decorator(logger):
+def logging_decorator(filename, logger_name):
     def _logging_decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -50,7 +62,10 @@ def logging_decorator(logger):
 
                 if data_from_request:
                     msg += f'Данные с запроса: {data_from_request}'
+                logger = get_logger(filename, logger_name)
                 logger.error(msg)
+                # executor.submit(logger.error, msg)
+
                 raise
         return wrapper
     return _logging_decorator
