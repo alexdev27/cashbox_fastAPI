@@ -1,12 +1,11 @@
-from typing import Union, List
+from typing import List
 from datetime import datetime
-from pydantic import Field, BaseModel, validator, ValidationError
-from app.enums import PaymentChoices, DocumentTypes, \
-    FiscalTaxesNumbers, ReturnDocumentType, CashboxTaxesNumbers
+from pydantic import Field, BaseModel, validator
+from app.enums import PaymentChoices, DocumentTypes, CashboxTaxesNumbers
 from app.schemas import DefaultSuccessResponse, CashierData
 from .models import Ware, Order
 from marshmallow_mongoengine import ModelSchema, fields
-from marshmallow import Schema
+from marshmallow import Schema, post_load
 from app.cashbox.main_cashbox.models import Cashbox
 
 
@@ -120,3 +119,8 @@ class ConvertToResponseCreateOrder(Schema):
     order_time = fields.Str(required=True, load_from='creation_date')
     cash_character = fields.Str(required=True, load_from='order_prefix')
     device_id = fields.Str(required=True)
+
+    @post_load
+    def modify_time(self, data):
+        data['order_time'] = str(data['order_time']).replace('T', ' ')
+        return data
