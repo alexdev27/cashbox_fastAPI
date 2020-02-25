@@ -5,7 +5,6 @@ from app.kkt_device.models import KKTDevice
 from app.helpers import get_WIN_UUID
 from app.enums import PaygateURLs
 from .schemas import OpenShiftSchema, CloseShiftSchema
-from pprint import pprint as pp
 
 
 @kkt_comport_activation()
@@ -54,7 +53,7 @@ async def get_shift_info(*args, **kwargs):
     result = kwargs['opened_port_info']
     current_shift = Cashbox.box().current_opened_shift
     shift_info = {
-        'shift_open_time': current_shift.creation_date,
+        'shift_open_time': str(current_shift.creation_date).replace('T', ' '),
         'total_money_in_cashbox': result['cash_balance'],
         'shift_number': current_shift.shiftNumber,
         'shift_total_inserted': current_shift.total_inserted_money_in_shift,
