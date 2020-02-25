@@ -20,11 +20,6 @@ class RequestWares(BaseModel):
     # tax_number: FiscalTaxesNumbers = Field(..., title='Номер налога (настоящий номер налога в фискальном регистраторе)')
 
 
-class ResponseWares:
-    pass
-
-
-
 class RequestCreateOrder(BaseModel):
     cashier_name: str = Field('', title='ФИО даныые кассира. Возмется из текущей смены, если не передано')
     cashier_id: str = Field('', title='Идентификатор кассира. Возмется из текущей смены, если не передано')
@@ -41,21 +36,16 @@ class RequestCreateOrder(BaseModel):
                                  f'if it is payment with real money')
         return v
 
+    # quick hack to check cashier fields
     @validator('payment_type', pre=True)
     def check_cashier(cls, v, values, **kwargs):
-        print('+++++++')
-        # TODO доделать
-        print(v, values, kwargs)
-        # values['cashier_name'] = '14124234'
-        # values['cashier_id'] = '14WERwerwer'
-        #
-        # if bool() and bool(values.get('cashier_name', '')):
-        #     pass
+        if bool(values.get('cashier_id', '')) and bool(values.get('cashier_name', '')):
+            return v
+        else:
+            shift = Cashbox.box().current_opened_shift
+            values['cashier_name'] = shift.cashier
+            values['cashier_id'] = shift.cashierID
         return v
-
-
-class RequestCashSettlementCreateOrder():
-    pass
 
 
 class ResponseCreateOrder(DefaultSuccessResponse):
