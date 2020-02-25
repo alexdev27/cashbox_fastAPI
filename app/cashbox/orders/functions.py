@@ -168,7 +168,7 @@ def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_produc
                     'discountedSum': 0, 'orderSum': total_sum,
                     'discountedOrderSum': total_sum}
         else:
-            return wares
+            return wares, 0
 
     disc_price = round_half_down(item['price'] - num_dec, 2)
     total_sum_with_discount = round_half_down(total_sum - num_dec, 2)
