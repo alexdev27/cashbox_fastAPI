@@ -15,4 +15,5 @@ class CashierData(BaseModel):
 
 
 class DefaultSuccessResponse(BaseModel):
+    from_cashbox: bool = Field(True, title='Флаг "с кассы"')
     error: bool = Field(False, title='Флаг ошибки')
