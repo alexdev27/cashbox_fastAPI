@@ -1,4 +1,3 @@
-from datetime import datetime
 from marshmallow_mongoengine import ModelSchema, fields
 from .models import OpenShift, CloseShift
 from app.schemas import CashierData, DefaultSuccessResponse
@@ -22,7 +21,7 @@ class ResponseOpenShift(DefaultSuccessResponse):
 
 
 class ResponseCurrentShiftInfo(DefaultSuccessResponse):
-    shift_open_time: datetime = Field(..., title='Время открытия смены')
+    shift_open_time: str = Field(..., title='Время открытия смены')
     total_money_in_cashbox: float = Field(..., title='Количество налички в кассе')
     shift_number: int = Field(..., title='Номер текущей смены')
     shift_total_inserted: float = Field(..., title='Общее количество внесенных наличных в смене')
