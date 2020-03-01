@@ -8,38 +8,37 @@ from app.exceptions import CashboxException
 
 class IKKTDevice(metaclass=abc.ABCMeta):
     @classmethod
-    def __subclasshook__(self, subclass):
-       return (hasattr(subclass, 'open_comport') and
-               callable(subclass.open_comport) and
-               hasattr(subclass, 'close_port') and
-               callable(subclass.close_port) and
-               hasattr(subclass, 'open_shift') and
-               callable(subclass.open_shift) and
-               hasattr(subclass, 'close_shift') and
-               callable(subclass.close_shift) and
-               hasattr(subclass, 'handle_order') and
-               callable(subclass.handle_order) and
-               hasattr(subclass, 'insert_remove_operation') and
-               callable(subclass.insert_remove_operation) and
-               hasattr(subclass, 'get_info') and
-               callable(subclass.get_info)
-               )
+    def __subclasshook__(cls, subclass):
+        return (hasattr(subclass, 'open_comport') and
+                callable(subclass.open_comport) and
+                hasattr(subclass, 'close_port') and
+                callable(subclass.close_port) and
+                hasattr(subclass, 'open_shift') and
+                callable(subclass.open_shift) and
+                hasattr(subclass, 'close_shift') and
+                callable(subclass.close_shift) and
+                hasattr(subclass, 'handle_order') and
+                callable(subclass.handle_order) and
+                hasattr(subclass, 'insert_remove_operation') and
+                callable(subclass.insert_remove_operation) and
+                hasattr(subclass, 'get_info') and
+                callable(subclass.get_info) or NotImplemented)
 
     @abc.abstractmethod
     def open_comport(*args, **kwargs):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def close_port(*args, **kwargs):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def open_shift(*args, **kwargs):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def close_shift(*args, **kwargs):
-        pass
+        raise NotImplementedError
 
     # @abc.abstractmethod
     # def force_close_shift(*args, **kwargs):
@@ -47,11 +46,11 @@ class IKKTDevice(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def handle_order(*args, **kwargs):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def insert_remove_operation(*args, **kwargs):
-        pass
+        raise NotImplementedError
 
     # @abc.abstractmethod
     # def set_zero_cash_drawer(*args, **kwargs):
@@ -59,7 +58,7 @@ class IKKTDevice(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_info(*args, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 def _handle_kkt_errors(func):

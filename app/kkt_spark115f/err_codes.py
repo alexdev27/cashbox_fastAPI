@@ -1,5 +1,12 @@
 
 
+def check_for_err_code(code):
+    if code <= 0:
+        return False
+    else:
+        return code in ERROR_CODES
+
+
 ERROR_CODES = [
     1, 2, 3, 4, 5, 6, 7, 9, 12, 16, 17, 20,
     21, 22, 26, 27, 28, 29, 34, 38, 40, 41, 42,
