@@ -42,7 +42,7 @@ class Order(Document):
     amount = FloatField(required=True)
     amount_with_discount = FloatField(required=True)
     payType = IntField(required=True)
-    payd = IntField(required=True)
+    paid = IntField(required=True)
     cashID = StringField(required=True)
     checkNumber = IntField(required=True)
     doc_number = IntField(required=True)
