@@ -70,7 +70,7 @@ async def create_order(*args, **kwargs):
         'pan': created_order.get('pan_card', ''),
         'payLink': created_order.get('rrn', ''),
         'payType': payment_type,
-        'payd': 1,
+        'paid': 1,
     }
 
     if real_money:

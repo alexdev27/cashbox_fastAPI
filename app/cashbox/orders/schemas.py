@@ -106,7 +106,7 @@ class PaygateOrderSchema(ModelSchema):
         model = Order
         model_build_obj = False
         fields = ['clientOrderID', 'cardHolder', 'pan', 'payLink',
-                  'amount', 'payType', 'payd', 'cashID', 'checkNumber', 'wares']
+                  'amount', 'payType', 'paid', 'cashID', 'checkNumber', 'wares']
 
 
 class ConvertToResponseCreateOrder(Schema):
