@@ -1,18 +1,68 @@
 from pprint import pprint as pp
-from comtypes.client import CreateObject
+from comtypes.client import CreateObject, GetModule
 from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IFPSpark
+# from comtypes.gen._CF921C08_02B9_415D_84C9_BA2ACE7C20AF_0_1_0 import \
+#     SAPacketObj, ISAPacketObj, PCPOSTConnectorObj, IPCPOSTConnectorObj
+
+from ctypes import *
+
+
+arcus = cdll.LoadLibrary(r"C:\Arcus2\DLL\arccom.dll")
+
 obj = CreateObject(FPSpark, None, None, IFPSpark)
+
+
+# def create_arcus():
+#     return arcus.CreateITpos()
+#
+# def run_arcus():
+#     pass
+#
+# def destroy_arcus():
+#     return arcus.DeleteITPos()
+
+
+
+# pp(arcus.CreateITPos)
+# sap = CreateObject(SAPacketObj, None, None, ISAPacketObj)
+# pos = CreateObject(PCPOSTConnectorObj)0
+
+
+pos_obj = arcus.CreateITPos()
+s = c_char_p(b'678')
+
+
+arcus.ITPosSet(pos_obj, 'currency', byref(s), -1)
+arcus.ITPosSet(pos_obj, 'amount', byref(s), -1)
+#
+a = arcus.ITPosRun(pos_obj, 1)
+
+arcus.ITPosClear(pos_obj)
+arcus.DeleteITPos(pos_obj)
+#
+# pp('run command')
+# pp(a)
+
+
+
+
+
+
+
+
+
 
 
 try:
     ""
+
     # obj.DeinitDevice()
-
-    pp(obj.InitDevice())
-    pp(obj.RegCashier('11115'))
-
-    for i in range(-800, -100):
-        print(f'{i} -> result {obj.GetTextDeviceInfo(i)}')
+    # pp(windll.kernel32)
+    # pp(obj.InitDevice())
+    # pp(obj.RegCashier('11115'))
+    # pp(dir(arcus))
+    # for i in range(1, 29):
+    #     print(f'{i} -> result {obj.GetTextDeviceInfo(i)}')
 
     # pp(obj.SetCashier('1', '11115', 'Golushko.'))
     # pp(obj.SetCashier('1', '11115', 'Чебуречкин А. П.'))
@@ -25,6 +75,8 @@ try:
     # pp(obj.GetTextDeviceInfo(0))
     # pp(obj.CashIn(8, "12345"))
     # pp(obj.CashOut(8, "147"))
+    # pp(obj.CashIn(8, "12345"))
+
 
     # pp(obj.CloseShift())
     #
@@ -38,7 +90,7 @@ try:
     #     print(i, str(obj.GetTextDeviceInfo(i)).strip())
     # pp('-----------------------')
     # pp(obj.GetTextDeviceInfo(0))
-    obj.DeinitDevice()
+    # obj.DeinitDevice()
 
 
 except Exception as e:
