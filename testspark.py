@@ -1,103 +1,132 @@
 from pprint import pprint as pp
+from comtypes import *
 from comtypes.client import CreateObject, GetModule
 from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IFPSpark
 # from comtypes.gen._CF921C08_02B9_415D_84C9_BA2ACE7C20AF_0_1_0 import \
 #     SAPacketObj, ISAPacketObj, PCPOSTConnectorObj, IPCPOSTConnectorObj
 
-from ctypes import *
 
-
-arcus = cdll.LoadLibrary(r"C:\Arcus2\DLL\arccom.dll")
+# arcus = cdll.LoadLibrary(r"C:\Arcus2\DLL\arccom.dll")
 
 obj = CreateObject(FPSpark, None, None, IFPSpark)
-
-
-# def create_arcus():
-#     return arcus.CreateITpos()
+# obj = CreateObject(dll.FPSpark, None, None, dll.IFPSpark)
 #
-# def run_arcus():
-#     pass
-#
-# def destroy_arcus():
-#     return arcus.DeleteITPos()
-
-
+# pp(dir(obj))
+# exit()
 
 # pp(arcus.CreateITPos)
 # sap = CreateObject(SAPacketObj, None, None, ISAPacketObj)
-# pos = CreateObject(PCPOSTConnectorObj)0
+# pos = CreateObject(PCPOSTConnectorObj)
 
 
-pos_obj = arcus.CreateITPos()
-s = c_char_p(b'678')
-
-
-arcus.ITPosSet(pos_obj, 'currency', byref(s), -1)
-arcus.ITPosSet(pos_obj, 'amount', byref(s), -1)
+# pos_obj = arcus.CreateITPos()
+# s = c_char_p(b'678')
 #
-a = arcus.ITPosRun(pos_obj, 1)
-
-arcus.ITPosClear(pos_obj)
-arcus.DeleteITPos(pos_obj)
+#
+# arcus.ITPosSet(pos_obj, 'currency', byref(s), -1)
+# arcus.ITPosSet(pos_obj, 'amount', byref(s), -1)
+# #
+# a = arcus.ITPosRun(pos_obj, 1)
+#
+# arcus.ITPosClear(pos_obj)
+# arcus.DeleteITPos(pos_obj)
 #
 # pp('run command')
 # pp(a)
 
+pp(obj.InitDevice())
+print('extended code InitDevice -> ', obj.GetExtendedErrorCode())
+
+# pp(obj.OpenShift2(67, '12345', 'Mesto reschetov 4'))
+# pp(obj.OpenShift(67, '12345'))
+# print('extended code OpenShift -> ', obj.GetExtendedErrorCode())
 
 
 
+# pp(obj.Item2(6, 1234, 'Baltika 2077', 18, 8, 1))
+# pp(obj.GetExtendedErrorCode())
+
+# print('header ', obj.SetOrderHeader(6, 'Hello', 4))
+# pp(obj.Item2(6, 1234, 'Baltika 2077', 1, 8, 8))
+
+obj.RegCashier('12345')
+# print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
+
+# obj.StartFreeDoc()
+# print('extended code StartFreeDoc -> ', obj.GetExtendedErrorCode())
+
+# pp(obj.TotalRep())
+# print('extended code TotalRep -> ', obj.GetExtendedErrorCode())
+# pp(obj.CloseShift())
+# print('extended code CancelDoc -> ', obj.GetExtendedErrorCode())
+
+# obj.StartDocSB(2)
+# print('extended code StartDocSB -> ', obj.GetExtendedErrorCode())
+
+# obj.CloseShift()
+# obj.CancelDoc()
+# print('extended code CancelDoc -> ', obj.GetExtendedErrorCode())
+# obj.EndDocSB()
+# print('extended code EndDocSB -> ', obj.GetExtendedErrorCode())
+#
+
+# obj.EndFreeDoc()
+# print('extended code EndFreeDoc -> ', obj.GetExtendedErrorCode())
+
+# pp(obj.CashIn(2, '1234'))
+# print('extended code CashIn -> ', obj.GetExtendedErrorCode())
+#
+for i in range(0, 49):
+    print(i, '-> ', obj.GetTextDeviceInfo(i))
+print('----------------------------')
+# print(obj.DeinitDevice())
+# print('extended code DeinitDevice -> ', obj.GetExtendedErrorCode())
+#
+# obj.CancelDoc()
+# # # ############
+
+# exit()
+############
+
+# obj.StartFreeDoc()
+# print('extended code StartFreeDoc -> ', obj.GetExtendedErrorCode())
+#
+obj.RegCashier('12345')
+print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
+
+obj.StartDocSB(1)
+print('extended code StartDocSB -> ', obj.GetExtendedErrorCode())
+# obj.PrintText(1, '==============')
+obj.Item(2000, 134, 'Baltika 2077', 2)
+print('extended code Item -> ', obj.GetExtendedErrorCode())
+
+obj.AddPay(8, str(999))
+print('extended code AddPay -> ', obj.GetExtendedErrorCode())
+
+# obj.Item2(6, 1234, 'Baltika 2077', 18, 8, 2)
+# print('extended code Item2 -> ', obj.GetExtendedErrorCode())
+for i in range(0, 49):
+    print(i, '-> ', obj.GetTextDeviceInfo(i))
+obj.EndDocSB()
+print('extend ed code EndDocSB -> ', obj.GetExtendedErrorCode())
+
+# print('_'*33)
+# print(obj.GetTextDeviceInfo(4),
+# obj.GetTextDeviceInfo(6),
+# obj.GetTextDeviceInfo(5),
+# obj.GetTextDeviceInfo(7),
+# obj.GetTextDeviceInfo(8),
+# obj.GetTextDeviceInfo(11),
+# obj.GetTextDeviceInfo(12),
+# obj.GetTextDeviceInfo(14),
+# obj.GetTextDeviceInfo(28))
+# obj.EndFreeDoc()
+# print('extended code EndFreeDoc -> ', obj.GetExtendedErrorCode())
+
+# print(obj.DeinitDevice())
+# print('extended code DeinitDevice -> ', obj.GetExtendedErrorCode())
 
 
-
-
-
-
-
-try:
-    ""
-
-    # obj.DeinitDevice()
-    # pp(windll.kernel32)
-    # pp(obj.InitDevice())
-    # pp(obj.RegCashier('11115'))
-    # pp(dir(arcus))
-    # for i in range(1, 29):
-    #     print(f'{i} -> result {obj.GetTextDeviceInfo(i)}')
-
-    # pp(obj.SetCashier('1', '11115', 'Golushko.'))
-    # pp(obj.SetCashier('1', '11115', 'Чебуречкин А. П.'))
-    # pp(obj.RegCashier('11115'))
-    # pp(obj.ChkShift())
-    # pp(obj.ChkCDrw())
-    # pp(obj.GetExtendedErrorCode())
-    # exit()
-    # pp('++++++++++++++++++++++')
-    # pp(obj.GetTextDeviceInfo(0))
-    # pp(obj.CashIn(8, "12345"))
-    # pp(obj.CashOut(8, "147"))
-    # pp(obj.CashIn(8, "12345"))
-
-
-    # pp(obj.CloseShift())
-    #
-    # pp(obj.OpenShift(1231, "11115"))
-
-
-    # pp('++++++++++++++++++++++')
-    # pp(obj.GetTextDeviceInfo(0))
-    # for i in range(1, 29):
-    #
-    #     print(i, str(obj.GetTextDeviceInfo(i)).strip())
-    # pp('-----------------------')
-    # pp(obj.GetTextDeviceInfo(0))
-    # obj.DeinitDevice()
-
-
-except Exception as e:
-    print('+++++++++++++')
-    print(e)
-
-# PumpEvents(300)
 """
     Некоторые значения вызова функций
     
@@ -109,5 +138,14 @@ except Exception as e:
     obj.GetTextDeviceInfo(11) - Время открытия смены
     obj.GetTextDeviceInfo(12) - Номер последнего документа
     obj.GetTextDeviceInfo(14) - Номер ФН
+    
+    obj.GetTextDeviceInfo(29) - Количество приходов в смене
+    obj.GetTextDeviceInfo(30) - Сумма приходов в смене
+    obj.GetTextDeviceInfo(31) - (Предположительно) Количество возвратов приходов в текущей смене
+    obj.GetTextDeviceInfo(32) - (Предположительно) Сумма возвратов приходов в текущей смене
+    obj.GetTextDeviceInfo(38) - Какая-то херня
+    obj.GetTextDeviceInfo(39) - Какая-то херня
+    
+    
     obj.GetTextDeviceInfo(28) - Похоже на количество денег в ящике
 """

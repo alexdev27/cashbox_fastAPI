@@ -36,15 +36,15 @@ class RequestCreateOrder(BaseModel):
         return v
 
     # quick hack to check cashier fields
-    @validator('payment_type', pre=True)
-    def check_cashier(cls, v, values, **kwargs):
-        if bool(values.get('cashier_id', '')) and bool(values.get('cashier_name', '')):
-            return v
-        else:
-            shift = Cashbox.box().current_opened_shift
-            values['cashier_name'] = shift.cashier
-            values['cashier_id'] = shift.cashierID
-        return v
+    # @validator('payment_type')
+    # def check_cashier(cls, v, values, **kwargs):
+    #     if bool(values.get('cashier_id', '')) and bool(values.get('cashier_name', '')):
+    #         return v
+    #     else:
+    #         shift = Cashbox.box().current_opened_shift
+    #         values['cashier_name'] = shift.cashier
+    #         values['cashier_id'] = shift.cashierID
+    #     return v
 
 
 class ResponseCreateOrder(DefaultSuccessResponse):
@@ -54,7 +54,7 @@ class ResponseCreateOrder(DefaultSuccessResponse):
     document_type: int = Field(DocumentTypes.PAYMENT, title='Тип документа (оплата)')
     cashier_name: str = Field(..., title='ФИО кассира')
     payment_link: str = Field("", title='Ссылка платежа (пустая, если наличный расчет)')
-    order_time: datetime = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-28 09:00:27"')
+    order_time: str = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-28 09:00:27"')
     cash_character: str = Field(..., title='Символ кассы. Необходим для совершения заказа/оплаты', min_length=1)
     device_id: str = Field(..., title='Идентификатор устройства (кассы)', min_length=4)
 
@@ -86,6 +86,7 @@ class WareSchema(ModelSchema):
 
 
 class OrderSchema(ModelSchema):
+    creation_date = fields.Str(required=True)
     wares = fields.Nested(WareSchema, many=True)
 
     class Meta:

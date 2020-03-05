@@ -1,10 +1,11 @@
 from app.kkt_device.decorators import kkt_comport_activation, validate_kkt_state, \
     check_for_opened_shift_in_fiscal, check_for_closed_shift_in_fiscal
 from app.cashbox.main_cashbox.models import Cashbox
-from app.kkt_device.models import KKTDevice
+from app import KKTDevice
 from app.helpers import get_WIN_UUID
 from app.enums import PaygateURLs
 from .schemas import OpenShiftSchema, CloseShiftSchema
+from pprint import pprint as pp
 
 
 @kkt_comport_activation()

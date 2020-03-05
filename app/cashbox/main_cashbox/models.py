@@ -63,6 +63,8 @@ class Cashbox(Document):
         shift = self.current_opened_shift
         r_func = round_half_up
 
+        print('amount incoming -> ', amount, ' op_number -> ', operation_number)
+
         if operation_number == DocumentTypes.INSERT:
             shift.total_inserted_money_in_shift = r_func(shift.total_inserted_money_in_shift + amount, 2)
         elif operation_number == DocumentTypes.REMOVE:

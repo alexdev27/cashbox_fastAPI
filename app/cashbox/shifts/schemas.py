@@ -33,7 +33,7 @@ class ResponseCurrentShiftInfo(DefaultSuccessResponse):
 
 class OpenShiftSchema(ModelSchema):
     start_shift_money = fields.Float(load_from='cash_balance')
-    creation_date = fields.DateTime(load_from='datetime', required=True)
+    creation_date = fields.Str(load_from='datetime', required=True)
 
     cashID = fields.Str(load_from='fn_number', required=True)
     cashier = fields.Str(load_from='cashier_name', required=True)
@@ -43,8 +43,8 @@ class OpenShiftSchema(ModelSchema):
     shiftNumber = fields.Int(load_from='shift_number', required=True)
     cashBalanceOpen = fields.Float(load_from='cash_balance', required=True)
     inn = fields.Str(load_from='inn', required=True)
-    totalSellOpen = fields.Float(load_from='progressive_total_sales', default=0)
-    totalReturnOpen = fields.Float(load_from='progressive_total_returns', default=0)
+    totalSellOpen = fields.Float(load_from='progressive_total_sales', default=0, missing=0)
+    totalReturnOpen = fields.Float(load_from='progressive_total_returns', default=0, missing=0)
     cashName = fields.Str(load_from='cash_name', required=True)
     cashSerial = fields.Str(load_from='fn_number', required=True)
     systemID = fields.Str(load_from='system_id', required=True)
@@ -65,20 +65,20 @@ class OpenShiftSchema(ModelSchema):
 
 
 class CloseShiftSchema(ModelSchema):
-    creation_date = fields.DateTime(load_from='datetime', required=True)
+    creation_date = fields.Str(load_from='datetime', required=True)
     cashID = fields.Str(load_from='fn_number', required=True)
     docNumber = fields.Int(load_from='doc_number', required=True)
     cashBalanceClose = fields.Float(load_from='cash_balance', required=True)
-    totalSellClose = fields.Float(load_from='progressive_total_sales', default=0)
-    totalReturnClose = fields.Float(load_from='progressive_total_returns', default=0)
-    inAmount = fields.Float(load_from='sum_insert', required=True)
-    outAmount = fields.Float(load_from='sum_remove', required=True)
-    inCount = fields.Int(load_from='count_insert', required=True)
-    outCount = fields.Int(load_from='count_remove', required=True)
-    discountAmount = fields.Float(load_from='discount_sum_sales', required=True)
-    discountReturns = fields.Float(load_from='discount_sum_returns', required=True)
-    amount = fields.Float(load_from='sum_sales', required=True)
-    returns = fields.Float(load_from='sum_returns', required=True)
+    totalSellClose = fields.Float(load_from='progressive_total_sales', default=0, missing=0)
+    totalReturnClose = fields.Float(load_from='progressive_total_returns', default=0, missing=0)
+    inAmount = fields.Float(load_from='sum_insert', default=0, missing=0)
+    outAmount = fields.Float(load_from='sum_remove', default=0, missing=0)
+    inCount = fields.Int(load_from='count_insert', default=0, missing=0)
+    outCount = fields.Int(load_from='count_remove', default=0, missing=0)
+    discountAmount = fields.Float(load_from='discount_sum_sales', default=0, missing=0)
+    discountReturns = fields.Float(load_from='discount_sum_returns', default=0, missing=0)
+    amount = fields.Float(load_from='sum_sales', default=0, missing=0)
+    returns = fields.Float(load_from='sum_returns', default=0, missing=0)
 
     class Meta:
         model = CloseShift

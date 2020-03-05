@@ -1,6 +1,6 @@
 from functools import wraps
 from app.exceptions import CashboxException
-from app.kkt_device.models import KKTDevice
+from app import KKTDevice
 from .constants import ERR_DB_SHIFT_OPENED_BUT_NOT_IN_FISCAL, ERR_FISCAL_SHIFT_OPENED_BUT_NOT_IN_DB, \
     ERR_SHIFT_NUMBER_NOT_SYNCED, ERR_IF_FISCAL_ID_NOT_SYNCED
 from app.cashbox.main_cashbox.models import Cashbox

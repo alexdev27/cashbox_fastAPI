@@ -1,11 +1,15 @@
 
 
 def check_for_err_code(code):
-    if code <= 0:
+    if code == _valid_codes:
         return False
+    elif code == -1:
+        return True
     else:
         return code in ERROR_CODES
 
+
+_valid_codes = [0, -2, -3]
 
 ERROR_CODES = [
     1, 2, 3, 4, 5, 6, 7, 9, 12, 16, 17, 20,

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from app.kkt_device.decorators import validate_kkt_state, kkt_comport_activation, \
     check_for_opened_shift_in_fiscal
-from app.kkt_device.models import KKTDevice
+from app import KKTDevice
 from app.cashbox.main_cashbox.models import Cashbox
 from app.exceptions import CashboxException
 from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, \
@@ -35,11 +35,10 @@ async def create_order(*args, **kwargs):
     wares = req_data['wares']
     character = cashbox.cash_character
     real_money = False
-    price_for_all_with_discount = 0
     order_prefix = f'{character}-'
 
     if req_data['payment_type'] == PaymentChoices.CASH:
-        wares, price_for_all_with_discount = find_and_modify_one_ware_with_discount(wares)
+        wares = find_and_modify_one_ware_with_discount(wares)
         real_money = True
 
     wares = _build_wares(wares)
@@ -54,14 +53,13 @@ async def create_order(*args, **kwargs):
     }
 
     created_order = KKTDevice.handle_order(**kkt_kwargs)
-    amount = round_half_down(created_order['transaction_sum'], 2)
-    amount_with_discount = price_for_all_with_discount if price_for_all_with_discount else amount
+
     data_to_db = {
         'cashier_name': cashier_name,
         'cashier_id': cashier_id,
         'clientOrderID': generate_internal_order_id(),
-        'amount': amount,
-        'amount_with_discount': amount_with_discount,
+        'amount': created_order['total_without_discount'],
+        'amount_with_discount': created_order['transaction_sum'],
         'creation_date': created_order['datetime'],
         'cashID': cashbox.cash_id,
         'checkNumber': get_cheque_number(created_order['check_number']),
@@ -74,7 +72,7 @@ async def create_order(*args, **kwargs):
     }
 
     if real_money:
-        cashbox.update_shift_money_counter(PaymentChoices.CASH, amount_with_discount)
+        cashbox.update_shift_money_counter(DocumentTypes.PAYMENT, created_order['transaction_sum'])
 
     # data_to_db.update({'wares': _build_wares(wares)})
     order, errs = OrderSchema().load({**kkt_kwargs, **data_to_db})
@@ -108,7 +106,7 @@ async def return_order(*args, **kwargs):
     if not order:
         msg = 'Нет такого заказа'
         raise CashboxException(data=msg)
-
+    print('flag  ', order.returned)
     if order.returned:
         msg = 'Этот заказ уже был возвращен'
         raise CashboxException(data=msg)
@@ -126,18 +124,17 @@ async def return_order(*args, **kwargs):
 
     canceled_order = KKTDevice.handle_order(**kkt_kwargs)
 
-    _order, err = OrderSchema().update(obj=order, data={
-        'returned': True,
-        'return_cashier_id': cashier_id,
-        'return_cashier_name': cashier_name,
-        'return_date': canceled_order['datetime']
-    })
+    cashbox.update_shift_money_counter(DocumentTypes.RETURN, order_dict['amount_with_discount'])
 
-    _order.save().reload()
+    order.returned = True
+    order.return_cashier_name = cashier_name
+    order.return_cashier_id = cashier_id
+    order.return_date = canceled_order['datetime']
+    order.save().reload()
 
     to_paygate = PaygateOrderSchema(only=[
         'clientOrderID', 'cashID', 'checkNumber'
-    ]).dump(_order).data
+    ]).dump(order).data
     to_paygate.update({'proj': cashbox.project_number})
     to_paygate.update({'url': PaygateURLs.cancel_order})
     cashbox.save_paygate_data_for_send(to_paygate)
@@ -168,7 +165,7 @@ def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_produc
                     'discountedSum': 0, 'orderSum': total_sum,
                     'discountedOrderSum': total_sum}
         else:
-            return wares, 0
+            return wares
 
     disc_price = round_half_down(item['price'] - num_dec, 2)
     total_sum_with_discount = round_half_down(total_sum - num_dec, 2)
@@ -193,7 +190,7 @@ def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_produc
                 'orderSum': total_sum,
                 'discountedOrderSum': total_sum_with_discount}
 
-    return _wares, total_sum_with_discount
+    return _wares
 
 
 def _build_wares(wares):
