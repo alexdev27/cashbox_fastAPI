@@ -49,7 +49,7 @@ class RequestCreateOrder(BaseModel):
 
 class ResponseCreateOrder(DefaultSuccessResponse):
     internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа в кассе', min_length=9)
-    cheque_number: int = Field(..., title='Номер созданного чека', gt=0)
+    order_number: int = Field(..., title='Номер созданного ', gt=0)
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
     document_type: int = Field(DocumentTypes.PAYMENT, title='Тип документа (оплата)')
     cashier_name: str = Field(..., title='ФИО кассира')
@@ -112,7 +112,7 @@ class PaygateOrderSchema(ModelSchema):
 
 class ConvertToResponseCreateOrder(Schema):
     internal_order_uuid = fields.Str(required=True, load_from='clientOrderID')
-    cheque_number = fields.Int(required=True, load_from='checkNumber')
+    order_number = fields.Int(required=True)
     payment_type = fields.Int(required=True, load_from='payType')
     document_type = fields.Int(required=True)
     cashier_name = fields.Str(required=True)

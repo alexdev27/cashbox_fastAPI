@@ -5,7 +5,18 @@ from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IF
 # from comtypes.gen._CF921C08_02B9_415D_84C9_BA2ACE7C20AF_0_1_0 import \
 #     SAPacketObj, ISAPacketObj, PCPOSTConnectorObj, IPCPOSTConnectorObj
 
+import arcus2
+#
+#
 
+# info = arcus2.purchase(123)
+pp(dir(arcus2))
+
+
+# pp(arcus2.cancel_last())
+# pp(arcus2.cancel_by_link(123, '23117317'))
+# pp(arcus2.cancel_by_link(123, '23117317'))
+# pp(arcus2.close_shift())
 # arcus = cdll.LoadLibrary(r"C:\Arcus2\DLL\arccom.dll")
 
 obj = CreateObject(FPSpark, None, None, IFPSpark)
@@ -13,6 +24,8 @@ obj = CreateObject(FPSpark, None, None, IFPSpark)
 #
 # pp(dir(obj))
 # exit()
+
+
 
 # pp(arcus.CreateITPos)
 # sap = CreateObject(SAPacketObj, None, None, ISAPacketObj)
@@ -49,11 +62,28 @@ print('extended code InitDevice -> ', obj.GetExtendedErrorCode())
 # print('header ', obj.SetOrderHeader(6, 'Hello', 4))
 # pp(obj.Item2(6, 1234, 'Baltika 2077', 1, 8, 8))
 
+# info = arcus2.purchase(123)
+# info = arcus2.cancel_by_link(123, '23117552')
+# pp(info)
 obj.RegCashier('12345')
 # print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
-
+# pp(obj.StartFreeDoc())
+# for i in info['cheque'].split('\r'):
+#     obj.PrintText(0, i)
+# pp(obj.EndFreeDoc())
+#
+#
+# info = arcus2.cancel_last()
+# pp(obj.StartFreeDoc())
+# pp(info)
+# pp(obj.CloseShift())
+# pp(obj.OpenShift(43, '12345'))
+# pp(obj.ChkShift())
+print('extended code ! -> ', obj.GetExtendedErrorCode())
+# for i in info['cheque'].split('\r'):
+#     obj.PrintText(0, i)
+# pp(obj.EndFreeDoc())
 # obj.StartFreeDoc()
-# print('extended code StartFreeDoc -> ', obj.GetExtendedErrorCode())
 
 # pp(obj.TotalRep())
 # print('extended code TotalRep -> ', obj.GetExtendedErrorCode())
@@ -76,16 +106,16 @@ obj.RegCashier('12345')
 # pp(obj.CashIn(2, '1234'))
 # print('extended code CashIn -> ', obj.GetExtendedErrorCode())
 #
-for i in range(0, 49):
-    print(i, '-> ', obj.GetTextDeviceInfo(i))
-print('----------------------------')
-# print(obj.DeinitDevice())
-# print('extended code DeinitDevice -> ', obj.GetExtendedErrorCode())
+# for i in range(0, 49):
+#     print(i, '-> ', obj.GetTextDeviceInfo(i))
+# print('----------------------------')
+print(obj.DeinitDevice())
+print('extended code DeinitDevice -> ', obj.GetExtendedErrorCode())
 #
 # obj.CancelDoc()
 # # # ############
 
-# exit()
+exit()
 ############
 
 # obj.StartFreeDoc()

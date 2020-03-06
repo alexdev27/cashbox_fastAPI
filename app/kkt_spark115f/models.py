@@ -1,4 +1,5 @@
 from functools import wraps
+from functools import reduce
 from .err_codes import check_for_err_code
 from .enums import KKTInfoEnum
 from comtypes.client import CreateObject
@@ -12,6 +13,7 @@ from traceback import print_tb
 from sys import exc_info
 from app.helpers import round_half_down
 
+import arcus2
 from pprint import pprint as pp
 
 
@@ -88,17 +90,25 @@ class Spark115f(IKKTDevice):
     def handle_order(*args, **kwargs):
         Spark115f.kkt_object.RegCashier('12345')
 
-        passw = kwargs['cashier_name']
+        cashier_name = kwargs['cashier_name']
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']
         money_given = int(kwargs.get('amount_entered', 0) * 100)
         pay_link = kwargs.get('pay_link', '')
         pref = kwargs.get('order_prefix', '')
+        order_num = kwargs.get('order_number', 0)
         sh = Spark115fHelper
 
-        spark_paytype = None
-        spark_doctype = None
+        total_price = 0
+        total_price_without_discount = 0
+
+        for ware in wares:
+            total_price = round_half_down(total_price + ware['amount'], 2)
+            total_price_without_discount += round_half_down(ware['quantity'] * ware['price'])
+
+        noncash_info = {}
+
         if DocumentTypes.PAYMENT == d_type:
             spark_doctype = 1
         elif DocumentTypes.RETURN == d_type:
@@ -106,55 +116,46 @@ class Spark115f(IKKTDevice):
 
         if PaymentChoices.NON_CASH.value == p_type:
             spark_paytype = 1
+            _data = {}
+            if DocumentTypes.PAYMENT == d_type:
+                _data.update(arcus_purchase(int(total_price * 100)))
+            elif DocumentTypes.RETURN == d_type:
+                if pay_link:
+                    _data.update(arcus_cancel_by_link(total_price, pay_link))
+
+            noncash_info.update(_data)
+            print_arcus_document(_data['cheque'])
         elif PaymentChoices.CASH.value == p_type:
             spark_paytype = 8
 
-        status = Spark115f.kkt_object.StartDocSB(spark_doctype)
-        sh.check_for_bad_code(Spark115f.kkt_object, status)
-        Spark115f.kkt_object.PrintExtraDocData('')
-        check_num = sh.get_last_fiscal_doc_number(Spark115f.kkt_object) + 1
-        Spark115f.kkt_object.PrintText(1, '----------------------------')
-        Spark115f.kkt_object.PrintText(1, 'Номер заказа: %s' % (f'{pref}{check_num}',))
-        Spark115f.kkt_object.PrintText(1, '----------------------------')
-        total_price_without_discount = 0
 
-        for ware in wares:
-            total_price_without_discount += ware['price'] * ware['quantity']
-
-            item = (int(ware['quantity'] * 1000), int(ware['priceDiscount'] * 100),
-                    f'{ware["barcode"]} {ware["name"]}', ware['tax_number']+1)
-            status = Spark115f.kkt_object.Item(*item)
-            if ware.get('discount', 0):
-                Spark115f.kkt_object.PrintText(1, f'Скидка: {ware["discount"]}')
-            print('status -> ', status)
-            try:
-                sh.check_for_bad_code(Spark115f.kkt_object, status)
-            except Exception:
-                Spark115f.kkt_object.CancelDoc()
-                raise
-
-        status = Spark115f.kkt_object.AddPay(spark_paytype, str(money_given))
+        pp(noncash_info)
         try:
-            sh.check_for_bad_code(Spark115f.kkt_object, status)
+            if DocumentTypes.PAYMENT == d_type:
+                print_cheque_number(pref, order_num)
+            start_fiscal_document(spark_doctype)
+            add_wares_to_document(wares)
+            apply_money_to_document(spark_paytype, total_price)
+            end_fiscal_document()
         except Exception:
-            Spark115f.kkt_object.CancelDoc()
+            if PaymentChoices.NON_CASH.value == p_type:
+                arcus_cancel_last_document()
             raise
 
-        total = sh.get_transaction_sum(Spark115f.kkt_object)
+        # raise ValueError('test!!!!')
 
-        status = Spark115f.kkt_object.EndDocSB()
-
-        try:
-            sh.check_for_bad_code(Spark115f.kkt_object, status)
-        except Exception:
-            Spark115f.kkt_object.CancelDoc()
-            raise
-
+        check_num = sh.get_last_fiscal_doc_number(Spark115f.kkt_object)
         info = sh.get_fully_formatted_info(Spark115f.kkt_object)
 
-        info['transaction_sum'] = round_half_down(total / 100, 2)
+        info['transaction_sum'] = round_half_down(total_price / 100, 2)
         info['check_number'] = check_num
         info['total_without_discount'] = round_half_down(total_price_without_discount, 2)
+        info['order_num'] = order_num+1
+        info['rrn'] = noncash_info.get('rrn', '')
+        info['pan_card'] = noncash_info.get('pan_card', '')
+        info['cardholder_name'] = noncash_info.get('cardholder_name', '')
+        pp('_____________')
+        pp(info)
         return info
 
     @staticmethod
@@ -267,3 +268,100 @@ class Spark115fHelper:
             return False
         elif status == -3:
             return True
+
+
+def print_cheque_number(pref, order_num):
+    Spark115f.kkt_object.PrintExtraDocData('')
+    Spark115f.kkt_object.PrintText(1, '----------------------------')
+    Spark115f.kkt_object.PrintText(1, 'Номер заказа: %s' % (f'{pref}{order_num + 1}',))
+    Spark115f.kkt_object.PrintText(1, '----------------------------')
+
+
+def check_for_spark_error_codes():
+    def _check_for_error_codes(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                status = func(*args, **kwargs)
+                Spark115fHelper.check_for_bad_code(Spark115f.kkt_object, status)
+            except Exception:
+                Spark115f.kkt_object.CancelDoc()
+                raise
+
+        return wrapper
+    return _check_for_error_codes
+
+
+@check_for_spark_error_codes()
+def add_ware_to_document(item):
+    return Spark115f.kkt_object.Item(*item)
+
+
+def add_wares_to_document(wares):
+    for ware in wares:
+        item = (int(ware['quantity'] * 1000), int(ware['priceDiscount'] * 100),
+                f'{ware["barcode"]} {ware["name"]}', ware['tax_number'] + 1)
+        add_ware_to_document(item)
+        if ware.get('discount', 0):
+            Spark115f.kkt_object.PrintText(1, f'Скидка: {ware["discount"]}')
+
+
+@check_for_spark_error_codes()
+def apply_money_to_document(pay_type, money):
+    return Spark115f.kkt_object.AddPay(pay_type, str(money))
+
+
+@check_for_spark_error_codes()
+def start_fiscal_document(doc_type):
+    return Spark115f.kkt_object.StartDocSB(doc_type)
+
+
+@check_for_spark_error_codes()
+def end_fiscal_document():
+    return Spark115f.kkt_object.EndDocSB()
+
+
+@check_for_spark_error_codes()
+def start_custom_document():
+    return Spark115f.kkt_object.StartFreeDoc()
+
+
+@check_for_spark_error_codes()
+def end_custom_document():
+    return Spark115f.kkt_object.EndFreeDoc()
+
+
+def print_arcus_document(strings):
+    cheque = strings.split('\r')
+    start_custom_document()
+    for i in cheque:
+        Spark115f.kkt_object.PrintText(0, i)
+    end_custom_document()
+
+
+# arcus methods
+
+def arcus_check_errors(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        info = func(*args, **kwargs)
+        if info.get('error', False):
+            raise Exception(f'Ошибка аркуса: {info}')
+        return info
+    return wrapper
+
+
+@arcus_check_errors
+def arcus_purchase(total):
+    return arcus2.purchase(total)
+
+
+@arcus_check_errors
+def arcus_cancel_by_link(total, link):
+    return arcus2.cancel_by_link(total, link)
+
+
+@arcus_check_errors
+def arcus_cancel_last_document():
+    return arcus2.cancel_last()
+

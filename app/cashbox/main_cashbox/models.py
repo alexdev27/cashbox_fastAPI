@@ -40,6 +40,13 @@ class Cashbox(Document):
     def save_paygate_data_for_send(self, data: Dict):
         DataToPayGate(data=data).save()
 
+    def modify_shift_order_number(self):
+        self.current_opened_shift.order_number += 1
+        self.current_opened_shift.save()
+
+    def get_shift_order_number(self):
+        return self.current_opened_shift.order_number
+
     def set_current_shift(self, shift: OpenShift):
         shift.save().reload()
         self.current_opened_shift = shift

@@ -32,6 +32,7 @@ class Order(Document):
     return_cashier_name = StringField(default='')
     return_cashier_id = StringField(default='')
     order_prefix = StringField(required=True)
+    order_number = IntField(required=True)
 
     #
     clientOrderID = StringField(required=True)

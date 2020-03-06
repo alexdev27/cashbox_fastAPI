@@ -9,6 +9,7 @@ from app.cashbox.orders.models import Order
 class OpenShift(Document):
     creation_date = DateTimeField(required=True)
     closed = BooleanField(default=False)
+    order_number = IntField(default=0)
     total_inserted_money_in_shift = FloatField(default=0)
     total_removed_money_in_shift = FloatField(default=0)
     total_sales_in_shift = FloatField(default=0)

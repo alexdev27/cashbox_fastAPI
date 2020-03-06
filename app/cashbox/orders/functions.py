@@ -36,6 +36,7 @@ async def create_order(*args, **kwargs):
     character = cashbox.cash_character
     real_money = False
     order_prefix = f'{character}-'
+    order_number = cashbox.get_shift_order_number()
 
     if req_data['payment_type'] == PaymentChoices.CASH:
         wares = find_and_modify_one_ware_with_discount(wares)
@@ -48,12 +49,14 @@ async def create_order(*args, **kwargs):
         'payment_type': payment_type,
         'document_type': document_type,
         'order_prefix': order_prefix,
+        'order_number': order_number,
         'amount_entered': amount_entered,
         'wares': wares
     }
 
     created_order = KKTDevice.handle_order(**kkt_kwargs)
 
+    cashbox.modify_shift_order_number()
     data_to_db = {
         'cashier_name': cashier_name,
         'cashier_id': cashier_id,
@@ -63,6 +66,7 @@ async def create_order(*args, **kwargs):
         'creation_date': created_order['datetime'],
         'cashID': cashbox.cash_id,
         'checkNumber': get_cheque_number(created_order['check_number']),
+        'order_number': created_order['order_num'],
         'doc_number': created_order['doc_number'],
         'cardHolder': created_order.get('cardholder_name', ''),
         'pan': created_order.get('pan_card', ''),
@@ -76,7 +80,7 @@ async def create_order(*args, **kwargs):
 
     # data_to_db.update({'wares': _build_wares(wares)})
     order, errs = OrderSchema().load({**kkt_kwargs, **data_to_db})
-
+    pp(errs)
     to_paygate, _errs = PaygateOrderSchema().dump(order)
     to_paygate.update({'proj': cashbox.project_number})
     to_paygate.update({'url': PaygateURLs.new_order})
@@ -122,6 +126,8 @@ async def return_order(*args, **kwargs):
         'order_prefix': order_dict['order_prefix']
     }
 
+    pp(order_dict['wares'])
+    raise ValueError('test!!!!!!!!')
     canceled_order = KKTDevice.handle_order(**kkt_kwargs)
 
     cashbox.update_shift_money_counter(DocumentTypes.RETURN, order_dict['amount_with_discount'])
