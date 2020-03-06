@@ -110,7 +110,7 @@ async def return_order(*args, **kwargs):
     if not order:
         msg = 'Нет такого заказа'
         raise CashboxException(data=msg)
-    print('flag  ', order.returned)
+
     if order.returned:
         msg = 'Этот заказ уже был возвращен'
         raise CashboxException(data=msg)
@@ -127,10 +127,11 @@ async def return_order(*args, **kwargs):
     }
 
     pp(order_dict['wares'])
-    raise ValueError('test!!!!!!!!')
+    # raise ValueError('test!!!!!!!!')
     canceled_order = KKTDevice.handle_order(**kkt_kwargs)
 
-    cashbox.update_shift_money_counter(DocumentTypes.RETURN, order_dict['amount_with_discount'])
+    if PaymentChoices.CASH.value == kkt_kwargs['payment_type']:
+        cashbox.update_shift_money_counter(DocumentTypes.RETURN, order_dict['amount_with_discount'])
 
     order.returned = True
     order.return_cashier_name = cashier_name
@@ -141,6 +142,7 @@ async def return_order(*args, **kwargs):
     to_paygate = PaygateOrderSchema(only=[
         'clientOrderID', 'cashID', 'checkNumber'
     ]).dump(order).data
+    to_paygate.update({'creation_date': canceled_order['datetime']})
     to_paygate.update({'proj': cashbox.project_number})
     to_paygate.update({'url': PaygateURLs.cancel_order})
     cashbox.save_paygate_data_for_send(to_paygate)
