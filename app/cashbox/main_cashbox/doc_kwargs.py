@@ -1,5 +1,5 @@
 from starlette.status import HTTP_200_OK
-from .schemas import RequestRegisterCashboxCharacter, ResponseRegisterCashboxCharacter, \
+from .schemas import ResponseRegisterCashboxCharacter, \
     ResponseGetSystemID
 
 
@@ -18,3 +18,11 @@ doc_get_sys_id = {
     'response_description': 'Идентификатор устройства',
     'status_code': HTTP_200_OK,
 }
+#
+# doc_register_fiscal_cashier = {
+#     'response_model': ResponseRegisterFiscalCashier,
+#     'description': 'Регистрация кассира в фисальном регистраторе',
+#     'summary': 'Регистрация кассира в фисальном регистраторе',
+#     'response_description': 'Зарегистрирован успешно',
+#     'status_code': HTTP_200_OK,
+# }

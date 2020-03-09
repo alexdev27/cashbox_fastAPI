@@ -1,5 +1,5 @@
 from pydantic import Field, BaseModel
-from app.schemas import DefaultSuccessResponse
+from app.schemas import DefaultSuccessResponse, CashierData
 
 
 class RequestRegisterCashboxCharacter(BaseModel):
@@ -12,3 +12,15 @@ class ResponseRegisterCashboxCharacter(DefaultSuccessResponse, RequestRegisterCa
 
 class ResponseGetSystemID(DefaultSuccessResponse):
     device_id: str = Field(..., title='Идентификатор устройства')
+
+
+class RequestRegisterFiscalCashier(CashierData):
+    fiscal_cashier_fio: str = Field(..., title='ФИО кассира для регистрации в фискальнике',
+                                    min_length=3, max_length=34)
+    fiscal_cashier_password: str = Field(..., title='Пароль кассира в фискальнике (только цифры)',
+                                         min_length=5, max_length=5)
+
+
+class ResponseRegisterFiscalCashier(DefaultSuccessResponse):
+    msg: str = Field('Зарегистрирован успешно', title='Сообщение об успешном регистрировании кассира '
+                                                      'в фискальном регистраторе')

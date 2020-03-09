@@ -14,6 +14,13 @@ async def register_character(character: RequestRegisterCashboxCharacter):
     return ResponseRegisterCashboxCharacter(**data)
 
 
+# @router.post('/register_fiscal_cashier', **doc_register_fiscal_cashier)
+# async def register_cashier(cashier_data: RequestRegisterFiscalCashier):
+#     kwargs = {'valid_schema_data': cashier_data.dict()}
+#     data = await register_fiscal_cashier(**kwargs)
+#     return ResponseRegisterFiscalCashier(**data)
+#
+
 @router.get('/get_system_id', **doc_get_sys_id)
 def get_system_id():
     return get_sys_id()
