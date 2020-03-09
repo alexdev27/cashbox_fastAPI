@@ -1,5 +1,4 @@
 from functools import wraps
-from functools import reduce
 from .err_codes import check_for_err_code
 from .enums import KKTInfoEnum
 from comtypes.client import CreateObject
@@ -34,12 +33,28 @@ def _handle_kkt_errors(func):
             Spark115f.kkt_object.DeinitDevice()
             raise CashboxException(data=msg)
     return wrapper
-# TODO доделать надо
 
 
 class Spark115f(IKKTDevice):
 
     kkt_object = CreateObject(FPSpark, None, None, IFPSpark)
+
+    # @staticmethod
+    # @_handle_kkt_errors
+    # def register_fiscal_cashier(*args, **kwargs):
+    #     fio = kwargs['fiscal_cashier_fio']
+    #     pswd = kwargs['fiscal_cashier_password']
+    #     status = Spark115f.kkt_object.SetCashier('1', pswd, fio)
+    #     sh = Spark115fHelper
+    #     sh.check_for_bad_code(Spark115f.kkt_object, status)
+    #     info = sh.get_fully_formatted_info(Spark115f.kkt_object)
+    #     return info
+
+    def startup(*args, **kwargs):
+        # set default cashier
+        Spark115f.open_comport()
+        register_cashier('16', '22233', 'Mr. Printer')
+        Spark115f.close_port()
 
     @staticmethod
     @_handle_kkt_errors
@@ -51,7 +66,7 @@ class Spark115f(IKKTDevice):
         return info
 
     def close_port(*args, **kwargs):
-        print('deinit status -> ',Spark115f.kkt_object.DeinitDevice())
+        Spark115f.kkt_object.DeinitDevice()
         return {}
 
     @staticmethod
@@ -283,6 +298,21 @@ def check_for_spark_error_codes(func):
             raise
 
     return wrapper
+
+
+@check_for_spark_error_codes
+def register_cashier(pos, pswd, fio):
+    return Spark115f.kkt_object.SetCashier(str(pos), str(pswd), str(fio))
+
+
+def apply_cashier_to_operation(fio, pswd='22333', pos='1'):
+    register_cashier(pos, pswd, fio)
+    init_cashier(pswd)
+
+
+@check_for_spark_error_codes
+def init_cashier(pswd):
+    return Spark115f.kkt_object.RegCashier(str(pswd))
 
 
 @check_for_spark_error_codes
