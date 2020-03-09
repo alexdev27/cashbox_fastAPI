@@ -5,12 +5,12 @@ from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IF
 # from comtypes.gen._CF921C08_02B9_415D_84C9_BA2ACE7C20AF_0_1_0 import \
 #     SAPacketObj, ISAPacketObj, PCPOSTConnectorObj, IPCPOSTConnectorObj
 
-import arcus2
+# import arcus2
 #
 #
 
 # info = arcus2.purchase(123)
-pp(dir(arcus2))
+# pp(dir(arcus2))
 
 
 # pp(arcus2.cancel_last())
@@ -65,21 +65,38 @@ print('extended code InitDevice -> ', obj.GetExtendedErrorCode())
 # info = arcus2.purchase(123)
 # info = arcus2.cancel_by_link(123, '23117552')
 # pp(info)
-obj.RegCashier('12345')
+# obj.RegCashier('12345')
 # print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
 # pp(obj.StartFreeDoc())
 # for i in info['cheque'].split('\r'):
 #     obj.PrintText(0, i)
 # pp(obj.EndFreeDoc())
-#
-#
+# pp(obj.RegCashier('99988'))
+# print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
+# pp(obj.CloseShift())
+
+# pp(obj.OpenShift(43, '99988'))
+# print('extended code OpenShift -> ', obj.GetExtendedErrorCode())
+
+
+# pp(obj.SetCashier('16', '99988', 'Mr. Printer2'))
+# print('extended code SetCashier -> ', obj.GetExtendedErrorCode())
+# #
+
+pp(obj.CancelDoc())
+print('extended code cancelDoc -> ', obj.GetExtendedErrorCode())
+
+pp(obj.RegCashier('99988'))
+print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
+pp(obj.CashIn(8, '1234'))
+print('extended code CashIn -> ', obj.GetExtendedErrorCode())
 # info = arcus2.cancel_last()
 # pp(obj.StartFreeDoc())
 # pp(info)
 # pp(obj.CloseShift())
 # pp(obj.OpenShift(43, '12345'))
 # pp(obj.ChkShift())
-print('extended code ! -> ', obj.GetExtendedErrorCode())
+# print('extended code ! -> ', obj.GetExtendedErrorCode())
 # for i in info['cheque'].split('\r'):
 #     obj.PrintText(0, i)
 # pp(obj.EndFreeDoc())
