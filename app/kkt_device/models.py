@@ -22,7 +22,14 @@ class IKKTDevice(metaclass=abc.ABCMeta):
                 hasattr(subclass, 'insert_remove_operation') and
                 callable(subclass.insert_remove_operation) and
                 hasattr(subclass, 'get_info') and
-                callable(subclass.get_info) or NotImplemented)
+                callable(subclass.get_info) and
+                hasattr(subclass, 'startup') and
+                callable(subclass.startup)
+                or NotImplemented)
+
+    @abc.abstractmethod
+    def startup(*args, **kwargs):
+        raise NotImplementedError
 
     @abc.abstractmethod
     def open_comport(*args, **kwargs):
@@ -86,7 +93,13 @@ def _handle_kkt_errors(func):
     return wrapper
 
 
-class KKTDevice:
+class Pirit2f(IKKTDevice):
+
+    def startup(*args, **kwargs):
+        pass
+
+    # def register_fiscal_cashier(*args, **kwargs):
+    #     pass
 
     @staticmethod
     @_handle_kkt_errors
