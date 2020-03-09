@@ -38,9 +38,11 @@ async def create_order(*args, **kwargs):
     order_prefix = f'{character}-'
     order_number = cashbox.get_shift_order_number()
 
-    if req_data['payment_type'] == PaymentChoices.CASH:
+    if payment_type == PaymentChoices.CASH:
         wares = find_and_modify_one_ware_with_discount(wares)
         real_money = True
+    elif payment_type == PaymentChoices.NON_CASH:
+        amount_entered = 0
 
     wares = _build_wares(wares)
 
