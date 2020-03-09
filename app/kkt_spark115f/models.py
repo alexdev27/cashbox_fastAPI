@@ -4,8 +4,6 @@ from .enums import KKTInfoEnum
 from comtypes.client import CreateObject
 from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IFPSpark
 from app.enums import DocumentTypes, PaymentChoices
-# from config
-from app.cashbox.main_cashbox.models import Cashbox
 from app.kkt_device.models import IKKTDevice
 from app.exceptions import CashboxException
 from traceback import print_tb
@@ -15,13 +13,14 @@ from app.helpers import round_half_down
 import arcus2
 from pprint import pprint as pp
 
+DEFAULT_CASHIER_PASSWORD = '22333'
+
 
 def _handle_kkt_errors(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-            # Spark115f.kkt_object.DeinitDevice()
             return result
         except Exception as exc:
             msg = f'Фискальный регистратор не смог ' \
@@ -53,16 +52,14 @@ class Spark115f(IKKTDevice):
     def startup(*args, **kwargs):
         # set default cashier
         Spark115f.open_comport()
-        register_cashier('16', '22233', 'Mr. Printer')
+        register_cashier('16', '88899', 'Mr. Printer')
         Spark115f.close_port()
 
     @staticmethod
     @_handle_kkt_errors
     def open_comport(*args, **kwargs):
-        sh = Spark115fHelper
-        status = Spark115f.kkt_object.InitDevice()
-        sh.check_for_bad_code(Spark115f.kkt_object, status)
-        info = sh.get_fully_formatted_info(Spark115f.kkt_object)
+        init_device()
+        info = Spark115fHelper.get_fully_formatted_info(Spark115f.kkt_object)
         return info
 
     def close_port(*args, **kwargs):
@@ -72,26 +69,19 @@ class Spark115f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def open_shift(*args, **kwargs):
-        test_passwd = '12345'
-        cashbox = Cashbox.box()
-        status = Spark115f.kkt_object.OpenShift(cashbox.cash_number, test_passwd)
-
-        Spark115f.kkt_object.RegCashier(test_passwd)
-
-        sh = Spark115fHelper
-        sh.check_for_bad_code(Spark115f.kkt_object, status)
-        info = sh.get_fully_formatted_info(Spark115f.kkt_object)
+        cash_number, cashier_name = args
+        register_cashier(cashier_name)
+        open_shift(cash_number)
+        info = Spark115fHelper.get_fully_formatted_info(Spark115f.kkt_object)
         return info
 
     @staticmethod
     @_handle_kkt_errors
     def close_shift(*args, **kwargs):
-        Spark115f.kkt_object.RegCashier('12345')
-
-        status = Spark115f.kkt_object.CloseShift()
-        sh = Spark115fHelper
-        sh.check_for_bad_code(Spark115f.kkt_object, status)
-        info = sh.get_fully_formatted_info(Spark115f.kkt_object)
+        cashier_name = args
+        apply_cashier_to_operation(cashier_name)
+        close_shift()
+        info = Spark115fHelper.get_fully_formatted_info(Spark115f.kkt_object)
         return info
 
     @staticmethod
@@ -103,17 +93,17 @@ class Spark115f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def handle_order(*args, **kwargs):
-        Spark115f.kkt_object.RegCashier('12345')
-
         cashier_name = kwargs['cashier_name']
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']
-        money_given = int(kwargs.get('amount_entered', 0) * 100)
+        money_given = int(kwargs.get('amount_entered', 0))
         pay_link = kwargs.get('pay_link', '')
         pref = kwargs.get('order_prefix', '')
         order_num = kwargs.get('order_number', 0)
         sh = Spark115fHelper
+
+        apply_cashier_to_operation(cashier_name)
 
         total_price = 0
         total_price_without_discount = 0
@@ -148,7 +138,8 @@ class Spark115f(IKKTDevice):
                 print_cheque_number(pref, order_num)
             start_fiscal_document(kwargs['spark_doctype'])
             add_wares_to_document(wares)
-            apply_money_to_document(kwargs['spark_paytype'], int(total_price*100))
+            money = money_given or total_price
+            apply_money_to_document(kwargs['spark_paytype'], int(money*100))
             end_fiscal_document()
         except Exception:
             if PaymentChoices.NON_CASH.value == p_type:
@@ -171,20 +162,18 @@ class Spark115f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def insert_remove_operation(*args, **kwargs):
-        Spark115f.kkt_object.RegCashier('12345')
-        _, amount, doc_type = args
-        func = None
+        cashier_name, amount, doc_type = args
+        apply_cashier_to_operation(cashier_name)
+
         if DocumentTypes.REMOVE == doc_type:
-            func = Spark115f.kkt_object.CashOut
+            func = cash_out
         elif DocumentTypes.INSERT == doc_type:
-            func = Spark115f.kkt_object.CashIn
+            func = cash_in
         else:
             raise ValueError('Неизвестный тип документа')
 
-        status = func(8, str(amount))
-        sh = Spark115fHelper
-        sh.check_for_bad_code(Spark115f.kkt_object, status)
-        info = sh.get_fully_formatted_info(Spark115f.kkt_object)
+        func(8, str(amount))
+        info = Spark115fHelper.get_fully_formatted_info(Spark115f.kkt_object)
         return info
 
     @staticmethod
@@ -301,18 +290,24 @@ def check_for_spark_error_codes(func):
 
 
 @check_for_spark_error_codes
-def register_cashier(pos, pswd, fio):
-    return Spark115f.kkt_object.SetCashier(str(pos), str(pswd), str(fio))
+def register_cashier(fio,  pswd=DEFAULT_CASHIER_PASSWORD, pos='1'):
+    cashier_fio = fio or 'Mr. Printer'
+    return Spark115f.kkt_object.SetCashier(str(pos), str(pswd), str(cashier_fio))
 
 
-def apply_cashier_to_operation(fio, pswd='22333', pos='1'):
-    register_cashier(pos, pswd, fio)
+def apply_cashier_to_operation(fio, pswd=DEFAULT_CASHIER_PASSWORD, pos='1'):
+    register_cashier(fio, pswd, pos)
     init_cashier(pswd)
 
 
 @check_for_spark_error_codes
-def init_cashier(pswd):
+def init_cashier(pswd=DEFAULT_CASHIER_PASSWORD):
     return Spark115f.kkt_object.RegCashier(str(pswd))
+
+
+@check_for_spark_error_codes
+def init_device():
+    return Spark115f.kkt_object.InitDevice()
 
 
 @check_for_spark_error_codes
@@ -332,6 +327,26 @@ def add_wares_to_document(wares):
 @check_for_spark_error_codes
 def apply_money_to_document(pay_type, money):
     return Spark115f.kkt_object.AddPay(pay_type, str(money))
+
+
+@check_for_spark_error_codes
+def open_shift(cash_num, cashier_password=DEFAULT_CASHIER_PASSWORD):
+    return Spark115f.kkt_object.OpenShift(int(cash_num), str(cashier_password))
+
+
+@check_for_spark_error_codes
+def close_shift():
+    return Spark115f.kkt_object.CloseShift()
+
+
+@check_for_spark_error_codes
+def cash_in(cash_type, amount):
+    return Spark115f.kkt_object.CashIn(cash_type, str(amount))
+
+
+@check_for_spark_error_codes
+def cash_out(cash_type, amount):
+    return Spark115f.kkt_object.CashOut(cash_type, str(amount))
 
 
 @check_for_spark_error_codes
