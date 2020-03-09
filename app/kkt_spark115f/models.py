@@ -78,7 +78,7 @@ class Spark115f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def close_shift(*args, **kwargs):
-        cashier_name = args
+        cashier_name = args[0]
         apply_cashier_to_operation(cashier_name)
         close_shift()
         info = Spark115fHelper.get_fully_formatted_info(Spark115f.kkt_object)
