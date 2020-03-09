@@ -141,6 +141,7 @@ async def async_startup():
     startup_logger = get_logger('startup.log', 'startup_error_logger')
     try:
         await init_cashbox()
+        KKTDevice.startup()
     except CashboxException as c_exc:
         msg = f'{c_exc.__class__.__name__}: {c_exc.data["errors"]}'
         startup_logger.error(msg)
