@@ -15,7 +15,7 @@ async def open_new_shift(*args, **kwargs):
     cashbox = Cashbox.box()
     req_data, kkt_info = kwargs['valid_schema_data'], kwargs['opened_port_info']
     cashier_name, cashier_id = req_data['cashier_name'], req_data['cashier_id']
-    open_shift_data = KKTDevice.open_shift(cashier_name)
+    open_shift_data = KKTDevice.open_shift(cashbox.cash_number, cashier_name)
     data_to_db = {
         'cashier_name': cashier_name, 'cashier_id': cashier_id,
         'shop_number': cashbox.shop, 'project_number': cashbox.project_number,
