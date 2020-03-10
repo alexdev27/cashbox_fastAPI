@@ -36,25 +36,25 @@ class RequestCreateOrder(BaseModel):
         return v
 
     # quick hack to check cashier fields
-    @validator('payment_type', pre=True)
-    def check_cashier(cls, v, values, **kwargs):
-        if bool(values.get('cashier_id', '')) and bool(values.get('cashier_name', '')):
-            return v
-        else:
-            shift = Cashbox.box().current_opened_shift
-            values['cashier_name'] = shift.cashier
-            values['cashier_id'] = shift.cashierID
-        return v
+    # @validator('payment_type')
+    # def check_cashier(cls, v, values, **kwargs):
+    #     if bool(values.get('cashier_id', '')) and bool(values.get('cashier_name', '')):
+    #         return v
+    #     else:
+    #         shift = Cashbox.box().current_opened_shift
+    #         values['cashier_name'] = shift.cashier
+    #         values['cashier_id'] = shift.cashierID
+    #     return v
 
 
 class ResponseCreateOrder(DefaultSuccessResponse):
     internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа в кассе', min_length=9)
-    cheque_number: int = Field(..., title='Номер созданного чека', gt=0)
+    order_number: int = Field(..., title='Номер созданного ', gt=0)
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
     document_type: int = Field(DocumentTypes.PAYMENT, title='Тип документа (оплата)')
     cashier_name: str = Field(..., title='ФИО кассира')
     payment_link: str = Field("", title='Ссылка платежа (пустая, если наличный расчет)')
-    order_time: datetime = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-28 09:00:27"')
+    order_time: str = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-28 09:00:27"')
     cash_character: str = Field(..., title='Символ кассы. Необходим для совершения заказа/оплаты', min_length=1)
     device_id: str = Field(..., title='Идентификатор устройства (кассы)', min_length=4)
 
@@ -86,6 +86,7 @@ class WareSchema(ModelSchema):
 
 
 class OrderSchema(ModelSchema):
+    creation_date = fields.Str(required=True)
     wares = fields.Nested(WareSchema, many=True)
 
     class Meta:
@@ -111,7 +112,7 @@ class PaygateOrderSchema(ModelSchema):
 
 class ConvertToResponseCreateOrder(Schema):
     internal_order_uuid = fields.Str(required=True, load_from='clientOrderID')
-    cheque_number = fields.Int(required=True, load_from='checkNumber')
+    order_number = fields.Int(required=True)
     payment_type = fields.Int(required=True, load_from='payType')
     document_type = fields.Int(required=True)
     cashier_name = fields.Str(required=True)

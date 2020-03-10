@@ -24,7 +24,7 @@ class ResponseCashOut(DefaultSuccessResponse):
 
 
 class CashOperationSchema(ModelSchema):
-    creation_date = fields.DateTime(load_from='datetime', required=True)
+    creation_date = fields.Str(load_from='datetime', required=True)
     cashID = fields.Str(load_from='fn_number', required=True)
 
     class Meta:

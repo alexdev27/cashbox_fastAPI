@@ -5,6 +5,10 @@ from fastapi.openapi.docs import (
     get_swagger_ui_html,
     get_swagger_ui_oauth2_redirect_html,
 )
+
+from app.kkt_spark115f.models import Spark115f
+KKTDevice = Spark115f
+
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
@@ -23,6 +27,10 @@ from .exceptions import CashboxException
 from mongoengine import connect, disconnect
 import config
 from .logging import get_logger
+
+# from app.kkt_device.models import KKTDevice as Pirit2f
+# from app.kkt_spark115f.models import Spark115f
+# KKTDevice = Spark115f
 
 # mongo connection
 connect(
@@ -133,6 +141,7 @@ async def async_startup():
     startup_logger = get_logger('startup.log', 'startup_error_logger')
     try:
         await init_cashbox()
+        KKTDevice.startup()
     except CashboxException as c_exc:
         msg = f'{c_exc.__class__.__name__}: {c_exc.data["errors"]}'
         startup_logger.error(msg)

@@ -3,7 +3,6 @@ from config import CASH_SETTINGS as CS
 from app.exceptions import CashboxException
 from app.helpers import request_to_paygate, get_WIN_UUID
 from .models import Cashbox
-from .schemas import RequestRegisterCashboxCharacter
 from app.enums import PaygateURLs
 from dateutil import parser
 
@@ -54,6 +53,13 @@ async def register_cashbox_character(*args, **kwargs):
     cashbox.save()
     return {'character': char}
 
+#
+# @kkt_comport_activation()
+# async def register_fiscal_cashier(*args, **kwargs):
+#     req_data = kwargs['valid_schema_data']
+#     KKTDevice.register_fiscal_cashier(**kwargs)
+#     return {}
+#
 
 async def get_sys_id():
     return {'device_id': get_WIN_UUID()}

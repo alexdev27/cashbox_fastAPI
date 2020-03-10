@@ -2,7 +2,7 @@ from app.kkt_device.decorators import kkt_comport_activation, validate_kkt_state
     check_for_opened_shift_in_fiscal
 from .schemas import CashOperationSchema
 from app.enums import DocumentTypes, PaygateURLs
-from app.kkt_device.models import KKTDevice
+from app import KKTDevice
 from app.cashbox.main_cashbox.models import Cashbox
 
 

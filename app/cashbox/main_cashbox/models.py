@@ -40,6 +40,13 @@ class Cashbox(Document):
     def save_paygate_data_for_send(self, data: Dict):
         DataToPayGate(data=data).save()
 
+    def modify_shift_order_number(self):
+        self.current_opened_shift.order_number += 1
+        self.current_opened_shift.save()
+
+    def get_shift_order_number(self):
+        return self.current_opened_shift.order_number
+
     def set_current_shift(self, shift: OpenShift):
         shift.save().reload()
         self.current_opened_shift = shift
@@ -62,6 +69,8 @@ class Cashbox(Document):
         # Big badass if statement
         shift = self.current_opened_shift
         r_func = round_half_up
+
+        print('amount incoming -> ', amount, ' op_number -> ', operation_number)
 
         if operation_number == DocumentTypes.INSERT:
             shift.total_inserted_money_in_shift = r_func(shift.total_inserted_money_in_shift + amount, 2)
