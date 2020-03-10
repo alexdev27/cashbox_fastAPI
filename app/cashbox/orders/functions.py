@@ -60,7 +60,7 @@ async def create_order(*args, **kwargs):
 
     cashbox.modify_shift_order_number()
     data_to_db = {
-        'cashier_name': cashier_name,
+        'cashier_name': created_order['cashier_name'],
         'cashier_id': cashier_id,
         'clientOrderID': generate_internal_order_id(),
         'amount': created_order['total_without_discount'],
