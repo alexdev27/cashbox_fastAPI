@@ -14,6 +14,7 @@ import arcus2
 from pprint import pprint as pp
 
 DEFAULT_CASHIER_PASSWORD = '22333'
+DEFAULT_CASHIER_NAME = 'Mr. Printer'
 
 
 def _handle_kkt_errors(func):
@@ -93,7 +94,7 @@ class Spark115f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def handle_order(*args, **kwargs):
-        cashier_name = kwargs['cashier_name']
+        cashier_name = kwargs['cashier_name'] or DEFAULT_CASHIER_NAME
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']
@@ -134,9 +135,10 @@ class Spark115f(IKKTDevice):
             kwargs.update({'spark_paytype': 8})
 
         try:
+            start_fiscal_document(kwargs['spark_doctype'])
             if DocumentTypes.PAYMENT == d_type:
                 print_cheque_number(pref, order_num)
-            start_fiscal_document(kwargs['spark_doctype'])
+
             add_wares_to_document(wares)
             money = money_given or total_price
             apply_money_to_document(kwargs['spark_paytype'], int(money*100))
@@ -149,7 +151,8 @@ class Spark115f(IKKTDevice):
 
         check_num = sh.get_last_fiscal_doc_number(Spark115f.kkt_object)
         info = sh.get_fully_formatted_info(Spark115f.kkt_object)
- 
+
+        info['cashier_name'] = cashier_name
         info['transaction_sum'] = total_price
         info['check_number'] = check_num
         info['total_without_discount'] = total_price_without_discount
@@ -270,7 +273,7 @@ class Spark115fHelper:
 
 
 def print_cheque_number(pref, order_num):
-    Spark115f.kkt_object.PrintExtraDocData('')
+    Spark115f.kkt_object.PrintExtraDocData(' ')
     Spark115f.kkt_object.PrintText(1, '----------------------------')
     Spark115f.kkt_object.PrintText(1, 'Номер заказа: %s' % (f'{pref}{order_num + 1}',))
     Spark115f.kkt_object.PrintText(1, '----------------------------')
