@@ -25,7 +25,7 @@ TIMEZONE = 'Asia/Vladivostok'
 CASH_SETTINGS = {}
 cash_settings_file = 'cash-conf.json'
 
-DLL_PATH = envs.get('SPARK_DLL')
+DLL_PATH = envs.get('SPARK_DLL', r'C:\SPARK115F\services\UDSpark.dll')
 
 try:
     CASH_SETTINGS = config_from_json_file(cash_settings_file)
