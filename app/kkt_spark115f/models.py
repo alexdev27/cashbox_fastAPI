@@ -102,7 +102,7 @@ class Spark115f(IKKTDevice):
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']
-        money_given = int(kwargs.get('amount_entered', 0))
+        money_given = kwargs.get('amount_entered', 0)
         pay_link = kwargs.get('pay_link', '')
         pref = kwargs.get('order_prefix', '')
         order_num = kwargs.get('order_number', 0)
