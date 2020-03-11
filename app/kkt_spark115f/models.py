@@ -12,7 +12,7 @@ from app.kkt_device.models import IKKTDevice
 from app.exceptions import CashboxException
 from traceback import print_tb
 from sys import exc_info
-from app.helpers import round_half_down
+from app.helpers import round_half_down, round_half_up
 
 import arcus2
 from pprint import pprint as pp
@@ -102,7 +102,7 @@ class Spark115f(IKKTDevice):
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']
-        money_given = int(kwargs.get('amount_entered', 0))
+        money_given = kwargs.get('amount_entered', 0)
         pay_link = kwargs.get('pay_link', '')
         pref = kwargs.get('order_prefix', '')
         order_num = kwargs.get('order_number', 0)
@@ -114,8 +114,8 @@ class Spark115f(IKKTDevice):
         total_price_without_discount = 0
 
         for ware in wares:
-            total_price = round_half_down(total_price + ware['amount'], 2)
-            total_price_without_discount += round_half_down(ware['quantity'] * ware['price'], 2)
+            total_price = round_half_up(total_price + ware['amount'], 2)
+            total_price_without_discount += round_half_up(ware['quantity'] * ware['price'], 2)
 
         noncash_info = {}
 
