@@ -1,6 +1,7 @@
 
 
 import sys
+from os import environ as envs
 from app.helpers import config_from_json_file
 import json
 
@@ -24,6 +25,7 @@ TIMEZONE = 'Asia/Vladivostok'
 CASH_SETTINGS = {}
 cash_settings_file = 'cash-conf.json'
 
+DLL_PATH = envs.get('SPARK_DLL')
 
 try:
     CASH_SETTINGS = config_from_json_file(cash_settings_file)
