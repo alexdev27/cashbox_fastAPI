@@ -71,8 +71,8 @@ print('extended code InitDevice -> ', obj.GetExtendedErrorCode())
 # for i in info['cheque'].split('\r'):
 #     obj.PrintText(0, i)
 # pp(obj.EndFreeDoc())
-# pp(obj.RegCashier('99988'))
-# print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
+pp(obj.RegCashier('22333'))
+print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
 # pp(obj.CloseShift())
 
 # pp(obj.OpenShift(43, '99988'))
@@ -83,11 +83,11 @@ print('extended code InitDevice -> ', obj.GetExtendedErrorCode())
 # print('extended code SetCashier -> ', obj.GetExtendedErrorCode())
 # #
 
-pp(obj.CancelDoc())
-print('extended code cancelDoc -> ', obj.GetExtendedErrorCode())
+# pp(obj.CancelDoc())
+# print('extended code cancelDoc -> ', obj.GetExtendedErrorCode())
 
-pp(obj.RegCashier('99988'))
-print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
+# pp(obj.RegCashier('99988'))
+# print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
 pp(obj.CashIn(8, '1234'))
 print('extended code CashIn -> ', obj.GetExtendedErrorCode())
 # info = arcus2.cancel_last()
