@@ -1,7 +1,10 @@
+from os import environ as envs
+
 from functools import wraps
 from .err_codes import check_for_err_code
 from .enums import KKTInfoEnum
-from comtypes.client import CreateObject
+from comtypes.client import CreateObject, GetModule
+GetModule(envs.get('SPARK_DLL') or r'C:\SPARK115f\services\UDSpark.dll')
 from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IFPSpark
 from app.enums import DocumentTypes, PaymentChoices
 from app.kkt_device.models import IKKTDevice
