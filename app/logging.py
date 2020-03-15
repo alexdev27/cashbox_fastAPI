@@ -6,7 +6,7 @@ from functools import wraps
 from .exceptions import CashboxException
 from logging.handlers import TimedRotatingFileHandler
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
-LOGS_DIR = os.path.expanduser('~') + '/steakhouse_logs'
+LOGS_DIR = os.path.expanduser('~') + '/cashbox_logs'
 
 executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
