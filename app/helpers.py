@@ -10,6 +10,11 @@ from aiohttp import ClientError, ClientSession
 from app.exceptions import CashboxException
 
 
+def truncate(number, digits) -> float:
+    stepper = pow(10.0, digits)
+    return math.trunc(stepper * number) / stepper
+
+
 def round_half_down(n, decimals=0):
     multiplier = 10 ** decimals
     return math.ceil(n*multiplier - 0.5) / multiplier
