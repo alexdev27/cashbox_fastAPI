@@ -55,7 +55,6 @@ async def create_order(*args, **kwargs):
         'amount_entered': amount_entered,
         'wares': wares
     }
-
     created_order = KKTDevice.handle_order(**kkt_kwargs)
 
     cashbox.modify_shift_order_number()
@@ -128,8 +127,6 @@ async def return_order(*args, **kwargs):
         'order_prefix': order_dict['order_prefix']
     }
 
-    pp(order_dict['wares'])
-    # raise ValueError('test!!!!!!!!')
     canceled_order = KKTDevice.handle_order(**kkt_kwargs)
 
     if PaymentChoices.CASH.value == kkt_kwargs['payment_type']:
@@ -163,8 +160,9 @@ def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_produc
     _wares = deepcopy(wares)
     total_sum = 0
     for w in _wares:
-        total_sum = round_half_down(w['price'] * w['quantity'] + total_sum, 2)
+        total_sum = w['price'] * w['quantity'] + total_sum
 
+    total_sum = round_half_down(total_sum, 2)
     num_dec = round_half_down(float(str(total_sum-int(total_sum))[1:]), 2)
 
     item = max(_wares, key=lambda x: x['price'])
@@ -211,10 +209,12 @@ def _build_wares(wares):
         tax_rate = int(ware['tax_rate'])
         divi = float(f'{1}.{tax_rate // 10}')
         multi = tax_rate / 100
-        price_for_all = round_half_down(ware.get('discountedPrice') or ware['price'] * ware['quantity'], 2)
+        price = ware.get('discountedPrice') or ware['price']
+        price_for_all = round_half_down(price * ware['quantity'], 2)
+
         tax_sum = round_half_up(price_for_all / divi * multi, 2)
 
-        ware.update({'priceDiscount': ware.get('discountedPrice') or ware['price']})
+        ware.update({'priceDiscount': price})
         ware.update({'taxRate': tax_rate})
         ware.update({'taxSum': tax_sum})
         ware.update({'tax_number': get_fiscal_tax_from_cashbox_tax(tax_rate)})
