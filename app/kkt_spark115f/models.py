@@ -268,7 +268,10 @@ class Spark115fHelper:
     @staticmethod
     def is_open_shift(obj):
         status = int(obj.ChkShift())
-        Spark115fHelper.check_for_bad_code(obj, status)
+        if status == -4:
+            return True
+        else:
+            Spark115fHelper.check_for_bad_code(obj, status)
 
         if status == -2:
             return False
