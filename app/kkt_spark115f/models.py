@@ -99,67 +99,31 @@ class Spark115f(IKKTDevice):
     @_handle_kkt_errors
     def handle_order(*args, **kwargs):
         cashier_name = kwargs['cashier_name'] or DEFAULT_CASHIER_NAME
-        p_type = kwargs['payment_type']
-        d_type = kwargs['document_type']
-        wares = kwargs['wares']
-        money_given = kwargs.get('amount_entered', 0)
-        pay_link = kwargs.get('pay_link', '')
-        pref = kwargs.get('order_prefix', '')
         order_num = kwargs.get('order_number', 0)
         sh = Spark115fHelper
 
         apply_cashier_to_operation(cashier_name)
 
-        total_price = 0
-        total_price_without_discount = 0
-
-        for ware in wares:
-            total_price = round_half_up(total_price + ware['amount'], 2)
-            total_price_without_discount += round_half_up(ware['quantity'] * ware['price'], 2)
-
-        noncash_info = {}
-
-        if DocumentTypes.PAYMENT == d_type:
-            kwargs.update({'spark_doctype': 1})
-        elif DocumentTypes.RETURN == d_type:
-            kwargs.update({'spark_doctype': 2})
-
-        if PaymentChoices.NON_CASH.value == p_type:
-            kwargs.update({'spark_paytype': 1})
-            _data = {}
-            if DocumentTypes.PAYMENT == d_type:
-                _data.update(arcus_purchase(int(total_price * 100)))
-            elif DocumentTypes.RETURN == d_type:
-                if pay_link:
-                    _data.update(arcus_cancel_by_link(int(total_price*100), pay_link))
-
-            noncash_info.update(_data)
-            print_arcus_document(_data['cheque'])
-        elif PaymentChoices.CASH.value == p_type:
+        if PaymentChoices.CASH.value == kwargs['payment_type']:
             kwargs.update({'spark_paytype': 8})
+        elif PaymentChoices.NON_CASH.value == kwargs['payment_type']:
+            kwargs.update({'spark_paytype': 1})
 
-        try:
-            start_fiscal_document(kwargs['spark_doctype'])
-            if DocumentTypes.PAYMENT == d_type:
-                print_cheque_number(pref, order_num)
-
-            add_wares_to_document(wares)
-            money = money_given or total_price
-            apply_money_to_document(kwargs['spark_paytype'], int(money*100))
-            end_fiscal_document()
-        except Exception:
-            if PaymentChoices.NON_CASH.value == p_type:
-                canceled = arcus_cancel_last_document()
-                print_arcus_document(canceled['cheque'])
-            raise
+        if DocumentTypes.PAYMENT == kwargs['document_type']:
+            kwargs.update({'spark_doctype': 1})
+            create_order(kwargs)
+        elif DocumentTypes.RETURN == kwargs['document_type']:
+            kwargs.update({'spark_doctype': 2})
+            cancel_order(kwargs)
 
         check_num = sh.get_last_fiscal_doc_number(Spark115f.kkt_object)
         info = sh.get_fully_formatted_info(Spark115f.kkt_object)
+        noncash_info = kwargs.get('arcus_data', {})
 
         info['cashier_name'] = cashier_name
-        info['transaction_sum'] = total_price
+        info['transaction_sum'] = kwargs.get('total_price', 0)
         info['check_number'] = check_num
-        info['total_without_discount'] = total_price_without_discount
+        info['total_without_discount'] = kwargs.get('total_price_without_discount', 0)
         info['order_num'] = order_num+1
         info['rrn'] = noncash_info.get('rrn', '')
         info['pan_card'] = noncash_info.get('pan_card', '')
@@ -268,7 +232,10 @@ class Spark115fHelper:
     @staticmethod
     def is_open_shift(obj):
         status = int(obj.ChkShift())
-        Spark115fHelper.check_for_bad_code(obj, status)
+        if status == -4:
+            return True
+        else:
+            Spark115fHelper.check_for_bad_code(obj, status)
 
         if status == -2:
             return False
@@ -410,3 +377,54 @@ def arcus_cancel_by_link(total, link):
 def arcus_cancel_last_document():
     return arcus2.cancel_last()
 
+
+def create_order(kwargs):
+
+    money_given = int(kwargs.get('amount_entered', 0) * 100)
+
+    total_price = 0
+    total_price_without_discount = 0
+
+    for ware in kwargs['wares']:
+        total_price = total_price + ware['amount']
+        total_price_without_discount += ware['quantity'] * ware['price']
+
+    total_price = round_half_down(total_price, 2)
+    total_price_without_discount = round_half_down(total_price_without_discount, 2)
+    pennies = int(total_price * 100)
+
+    if kwargs['payment_type'] == PaymentChoices.CASH.value:
+        process_order(money_given, kwargs)
+    elif kwargs['payment_type'] == PaymentChoices.NON_CASH.value:
+        kwargs.update({'arcus_data': arcus_purchase(pennies)})
+        print_arcus_document(kwargs['arcus_data']['cheque'])
+        process_order(pennies, kwargs)
+
+    kwargs.update({'total_price': total_price})
+    kwargs.update({'total_price_without_discount': total_price_without_discount})
+
+
+def process_order(pennies, kwargs):
+    try:
+        start_fiscal_document(kwargs['spark_doctype'])
+        if kwargs['document_type'] == DocumentTypes.PAYMENT:
+            print_cheque_number(kwargs['order_prefix'], kwargs['order_number'])
+
+        add_wares_to_document(kwargs['wares'])
+        apply_money_to_document(kwargs['spark_paytype'], int(pennies))
+        end_fiscal_document()
+    except Exception:
+        if PaymentChoices.NON_CASH.value == kwargs['payment_type']:
+            canceled = arcus_cancel_last_document()
+            print_arcus_document(canceled['cheque'])
+        raise
+
+
+def cancel_order(kwargs):
+    pennies = int(kwargs['amount_entered'] * 100)
+    if kwargs['payment_type'] == PaymentChoices.CASH.value:
+        process_order(pennies, kwargs)
+    elif kwargs['payment_type'] == PaymentChoices.NON_CASH.value:
+        kwargs.update({'arcus_data': arcus_cancel_by_link(pennies, kwargs['pay_link'])})
+        print_arcus_document(kwargs['arcus_data']['cheque'])
+        process_order(pennies, kwargs)

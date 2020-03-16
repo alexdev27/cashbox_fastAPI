@@ -6,6 +6,7 @@ from app.schemas import DefaultSuccessResponse, CashierData
 from .models import Ware, Order
 from marshmallow_mongoengine import ModelSchema, fields
 from marshmallow import Schema, post_load
+from app.helpers import truncate
 from app.cashbox.main_cashbox.models import Cashbox
 
 
@@ -17,6 +18,10 @@ class RequestWares(BaseModel):
     price: float = Field(..., title='Цена товара', ge=0.5)
     tax_rate: CashboxTaxesNumbers = Field(..., title='Налоговаяя ставка')
     # tax_number: FiscalTaxesNumbers = Field(..., title='Номер налога (настоящий номер налога в фискальном регистраторе)')
+
+    @validator('price', each_item=True)
+    def modify_price(cls, v):
+        return truncate(v, 2)
 
 
 class RequestCreateOrder(BaseModel):
