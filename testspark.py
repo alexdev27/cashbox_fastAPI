@@ -47,7 +47,7 @@ obj = CreateObject(FPSpark, None, None, IFPSpark)
 # pp('run command')
 # pp(a)
 
-pp(obj.InitDevice())
+print('error code InitDevice -> ', obj.InitDevice())
 print('extended code InitDevice -> ', obj.GetExtendedErrorCode())
 
 # pp(obj.OpenShift2(67, '12345', 'Mesto reschetov 4'))
@@ -71,68 +71,32 @@ print('extended code InitDevice -> ', obj.GetExtendedErrorCode())
 # for i in info['cheque'].split('\r'):
 #     obj.PrintText(0, i)
 # pp(obj.EndFreeDoc())
-pp(obj.RegCashier('22333'))
+
+print('error code CloseShift ->', obj.CloseShift())
+print('extended code CloseShift -> ', obj.GetExtendedErrorCode())
+
+print('error code SetCashier -> ', obj.SetCashier('16', '99988', 'Mr.Printer'))
+print('extended code SetCashier -> ', obj.GetExtendedErrorCode())
+
+
+print('error code OpenShift -> ', obj.OpenShift(43, '99988'))
+print('extended code OpenShift -> ', obj.GetExtendedErrorCode())
+
+print('error code RegCashier -> ', obj.RegCashier('99988'))
 print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
-# pp(obj.CloseShift())
-
-# pp(obj.OpenShift(43, '99988'))
-# print('extended code OpenShift -> ', obj.GetExtendedErrorCode())
 
 
-# pp(obj.SetCashier('16', '99988', 'Mr. Printer2'))
-# print('extended code SetCashier -> ', obj.GetExtendedErrorCode())
-# #
-
-# pp(obj.CancelDoc())
-# print('extended code cancelDoc -> ', obj.GetExtendedErrorCode())
-
-# pp(obj.RegCashier('99988'))
-# print('extended code RegCashier -> ', obj.GetExtendedErrorCode())
-pp(obj.CashIn(8, '1234'))
+print('error code CashIn -> ', obj.CashIn(8, '1234'))
 print('extended code CashIn -> ', obj.GetExtendedErrorCode())
-# info = arcus2.cancel_last()
-# pp(obj.StartFreeDoc())
-# pp(info)
-# pp(obj.CloseShift())
-# pp(obj.OpenShift(43, '12345'))
-# pp(obj.ChkShift())
-# print('extended code ! -> ', obj.GetExtendedErrorCode())
-# for i in info['cheque'].split('\r'):
-#     obj.PrintText(0, i)
-# pp(obj.EndFreeDoc())
-# obj.StartFreeDoc()
 
-# pp(obj.TotalRep())
-# print('extended code TotalRep -> ', obj.GetExtendedErrorCode())
-# pp(obj.CloseShift())
-# print('extended code CancelDoc -> ', obj.GetExtendedErrorCode())
 
-# obj.StartDocSB(2)
-# print('extended code StartDocSB -> ', obj.GetExtendedErrorCode())
-
-# obj.CloseShift()
-# obj.CancelDoc()
-# print('extended code CancelDoc -> ', obj.GetExtendedErrorCode())
-# obj.EndDocSB()
-# print('extended code EndDocSB -> ', obj.GetExtendedErrorCode())
-#
-
-# obj.EndFreeDoc()
-# print('extended code EndFreeDoc -> ', obj.GetExtendedErrorCode())
-
-# pp(obj.CashIn(2, '1234'))
-# print('extended code CashIn -> ', obj.GetExtendedErrorCode())
-#
-# for i in range(0, 49):
-#     print(i, '-> ', obj.GetTextDeviceInfo(i))
-# print('----------------------------')
-print(obj.DeinitDevice())
+print('error code DeinitDevice -> ', obj.DeinitDevice())
 print('extended code DeinitDevice -> ', obj.GetExtendedErrorCode())
-#
-# obj.CancelDoc()
-# # # ############
 
+############
+############
 exit()
+############
 ############
 
 # obj.StartFreeDoc()
