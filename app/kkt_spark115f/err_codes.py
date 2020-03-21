@@ -1,3 +1,5 @@
+# Prevent app from crash
+FISCAL_ERROR_4 = 4  # Very dirty bugfix
 
 
 def check_for_err_code(code):
@@ -9,10 +11,10 @@ def check_for_err_code(code):
         return code in ERROR_CODES
 
 
-_valid_codes = [0, -2, -3]
+_valid_codes = [0, -2, -3, FISCAL_ERROR_4]
 
 ERROR_CODES = [
-    1, 2, 3, 4, 5, 6, 7, 9, 12, 16, 17, 20,
+    1, 2, 3, 5, 6, 7, 9, 12, 16, 17, 20,
     21, 22, 26, 27, 28, 29, 34, 38, 40, 41, 42,
     43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
     55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 68, 69, 70,
