@@ -86,6 +86,7 @@ class Spark115f(IKKTDevice):
         cashier_name = args[0] if args else DEFAULT_CASHIER_NAME
         apply_cashier_to_operation(cashier_name)
         close_shift()
+        arcus_close_shift()
         info = Spark115fHelper.get_fully_formatted_info(Spark115f.kkt_object)
         return info
 
@@ -366,6 +367,11 @@ def arcus_check_errors(func):
 @arcus_check_errors
 def arcus_purchase(total):
     return arcus2.purchase(total)
+
+
+@arcus_check_errors
+def arcus_close_shift():
+    arcus2.close_shift()
 
 
 @arcus_check_errors
