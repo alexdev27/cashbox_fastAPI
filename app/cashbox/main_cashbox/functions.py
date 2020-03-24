@@ -5,6 +5,8 @@ from app.helpers import request_to_paygate, get_WIN_UUID
 from .models import Cashbox
 from app.enums import PaygateURLs
 from dateutil import parser
+from app.logging import logging_decorator
+
 
 
 @kkt_comport_activation()
@@ -44,6 +46,7 @@ async def init_cashbox(*args, **kwargs):
         cashbox.save().reload()
 
 
+@logging_decorator('main.log', 'main_module_logger', 'REGISTER CHARACTER')
 # @kkt_comport_activation()
 async def register_cashbox_character(*args, **kwargs):
     req_data = kwargs['valid_schema_data']
@@ -61,5 +64,7 @@ async def register_cashbox_character(*args, **kwargs):
 #     return {}
 #
 
+
+@logging_decorator('main.log', 'main_module_logger', 'GET SYS ID')
 async def get_sys_id():
     return {'device_id': get_WIN_UUID()}

@@ -6,9 +6,11 @@ from app.helpers import get_WIN_UUID
 from app.enums import PaygateURLs
 from .schemas import OpenShiftSchema, CloseShiftSchema
 from app.helpers import round_half_down
+from app.logging import logging_decorator
 # from pprint import pprint as pp
 
 
+@logging_decorator('shift_logs.log', 'shift_logger', 'OPEN SHIFT')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_closed_shift_in_fiscal()
@@ -31,6 +33,7 @@ async def open_new_shift(*args, **kwargs):
     return {}
 
 
+@logging_decorator('shift_logs.log', 'shift_logger', 'CLOSE SHIFT')
 @kkt_comport_activation()
 @validate_kkt_state(skip_shift_check=True)
 @check_for_opened_shift_in_fiscal()

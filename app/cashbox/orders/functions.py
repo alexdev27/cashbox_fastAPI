@@ -15,7 +15,7 @@ from app.logging import logging_decorator
 from pprint import pprint as pp
 
 
-@logging_decorator('order_logs.log', 'order_logger')
+@logging_decorator('order_logs.log', 'order_logger', 'CREATE ORDER')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
@@ -94,7 +94,7 @@ async def create_order(*args, **kwargs):
     return to_response
 
 
-@logging_decorator('order_logs.log', 'order_logger')
+@logging_decorator('order_logs.log', 'order_logger', 'RETURN ORDER')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
@@ -148,7 +148,7 @@ async def return_order(*args, **kwargs):
     return {}
 
 
-@logging_decorator('order_logs.log', 'order_logger')
+@logging_decorator('order_logs.log', 'order_logger', 'ROUND PRICE')
 async def round_price(*args, **kwargs):
     req_data = kwargs['valid_schema_data']
     data = find_and_modify_one_ware_with_discount(req_data, True)
