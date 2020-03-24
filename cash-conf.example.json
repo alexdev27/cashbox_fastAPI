@@ -3,6 +3,7 @@
   "timezone": "Asia/Vladivostok",
   "department": 19,
   "cashName": "CashMachineOver9000",
+  "paygateAddress":  "",
   "comport": "COM9",
   "comportSpeed": 57600
 }
