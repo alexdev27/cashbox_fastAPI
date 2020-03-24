@@ -371,7 +371,7 @@ def arcus_purchase(total):
 
 @arcus_check_errors
 def arcus_close_shift():
-    arcus2.close_shift()
+    return arcus2.close_shift() or {}
 
 
 @arcus_check_errors

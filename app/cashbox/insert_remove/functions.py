@@ -4,8 +4,10 @@ from .schemas import CashOperationSchema
 from app.enums import DocumentTypes, PaygateURLs
 from app import KKTDevice
 from app.cashbox.main_cashbox.models import Cashbox
+from app.logging import logging_decorator
 
 
+@logging_decorator('insert_remove.log', 'insert_remove_logger', 'INSERT MONEY')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
@@ -18,6 +20,7 @@ async def handle_insert(*args, **kwargs):
     return {}
 
 
+@logging_decorator('insert_remove.log', 'insert_remove_logger', 'REMOVE MONEY')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
