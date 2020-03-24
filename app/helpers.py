@@ -38,6 +38,7 @@ def config_from_json_file(json_filename):
     class JsonConfig(BaseModel):
         shopNumber: int = Field(..., title='Номер магазина', ge=0)
         department: int = Field(..., title='Номер дапартамента', ge=0)
+        paygateAddress: str = Field(..., title='IP сервера')
         # timezone: str = Field(..., title='Часовой пояс')
         cashName: str = Field(..., title='Название кассы', min_length=3)
         comport: str = Field(..., title='Номер COM порта (COM9 для примера)', min_length=4)
