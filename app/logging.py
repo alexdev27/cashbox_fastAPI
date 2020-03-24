@@ -8,7 +8,7 @@ from logging.handlers import TimedRotatingFileHandler
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 LOGS_DIR = os.path.expanduser('~') + '/cashbox_logs'
 
-executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+# executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
 # Track logging filenames
 log_filenames = []
@@ -26,7 +26,7 @@ def get_console_handler():
 
 
 def get_file_handler(filename):
-    file_handler = TimedRotatingFileHandler(filename, when='S', interval=5, backupCount=10)
+    file_handler = TimedRotatingFileHandler(filename, when='D', interval=1, backupCount=10)
     file_handler.setFormatter(FORMATTER)
     return file_handler
 
@@ -47,22 +47,32 @@ def get_logger(filename, logger_name):
     return logger
 
 
-def logging_decorator(filename, logger_name):
+def logging_decorator(filename, logger_name, operation=''):
     def _logging_decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            logger = get_logger(filename, logger_name)
+            data_from_request = kwargs.get('valid_schema_data', '')
+            logger.info(f"""
+            ----------------------------------------------------
+            ------> Начало исполнения операции "{operation}" ....
+            ----------------------------------------------------
+            Данные с запроса ----
+            {data_from_request}
+            """)
             try:
-                return await func(*args, **kwargs)
+                result = await func(*args, **kwargs)
+                logger.info("""
+                ------> Done
+                """)
+                return result
             except CashboxException as exc:
-
-                data_from_request = kwargs.get('valid_schema_data', '')
 
                 msg = f'Возникло исключение {exc.__class__.__name__}. \n' \
                       f'Информация из ошибки: {exc.data["errors"]} \n'
 
                 if data_from_request:
                     msg += f'Данные с запроса: {data_from_request}'
-                logger = get_logger(filename, logger_name)
                 logger.error(msg)
                 # executor.submit(logger.error, msg)
 
