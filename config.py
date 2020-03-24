@@ -9,10 +9,9 @@ import json
 SECRET_KEY = 'erg434gerg2425t23adrwerwffwer23qw42z'
 
 MONGODB_SETTINGS = {
-    'DB': 'temp_payment_data_2',
+    'DB': 'paygate_data',
 }
 
-temp_payment_service_url = 'http://10.21.3.38:8100'
 
 HOSTNAME = 'localhost'
 
