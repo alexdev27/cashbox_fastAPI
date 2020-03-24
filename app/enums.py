@@ -1,5 +1,8 @@
 from enum import IntEnum, Enum
-from config import temp_payment_service_url as payment_service
+
+from config import CASH_SETTINGS
+
+payment_service = CASH_SETTINGS['paygateAddress']
 
 
 class PaygateURLs(Enum):
