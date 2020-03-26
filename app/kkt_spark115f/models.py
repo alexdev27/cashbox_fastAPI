@@ -1,5 +1,5 @@
 from functools import wraps
-from .err_codes import check_for_err_code
+from .err_codes import check_for_err_code, SHIFT_IS_OPEN, SHIFT_IS_CLOSED, SHIFT_IS_ELAPSED
 from .enums import KKTInfoEnum
 from comtypes.client import CreateObject, GetModule
 from config import DLL_PATH
@@ -33,10 +33,22 @@ def _handle_kkt_errors(func):
                   f'Тип ошибки: {exc.__class__.__name__} ' \
                   f'Описание: {str(exc)}'
             # pp(exc_info()[2])
-            print_tb(exc_info()[2], 20)
+            # print_tb(exc_info()[2], 20)
             Spark115f.kkt_object.DeinitDevice()
             raise CashboxException(data=msg)
     return wrapper
+
+
+def _exception_if_shift_is_elapsed(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if int(Spark115f.kkt_object.ChkShift()) == SHIFT_IS_ELAPSED:
+            msg = 'Смена открыта более чем 24 часа. Закройте смену и откройте снова'
+            raise Exception(msg)
+        return func(*args, **kwargs)
+    return wrapper
+
+
 
 
 class Spark115f(IKKTDevice):
@@ -98,6 +110,7 @@ class Spark115f(IKKTDevice):
 
     @staticmethod
     @_handle_kkt_errors
+    @_exception_if_shift_is_elapsed
     def handle_order(*args, **kwargs):
         cashier_name = kwargs['cashier_name'] or DEFAULT_CASHIER_NAME
         order_num = kwargs.get('order_number', 0)
@@ -133,6 +146,7 @@ class Spark115f(IKKTDevice):
 
     @staticmethod
     @_handle_kkt_errors
+    @_exception_if_shift_is_elapsed
     def insert_remove_operation(*args, **kwargs):
         cashier_name, amount, doc_type = args
         apply_cashier_to_operation(cashier_name)
@@ -233,14 +247,14 @@ class Spark115fHelper:
     @staticmethod
     def is_open_shift(obj):
         status = int(obj.ChkShift())
-        if status == -4:
+        if status == SHIFT_IS_ELAPSED:
             return True
         else:
             Spark115fHelper.check_for_bad_code(obj, status)
 
-        if status == -2:
+        if status == SHIFT_IS_CLOSED:
             return False
-        elif status == -3:
+        elif status == SHIFT_IS_OPEN:
             return True
 
 
