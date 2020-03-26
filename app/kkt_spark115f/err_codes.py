@@ -1,6 +1,11 @@
 # Prevent app from crash
 FISCAL_ERROR_4 = 4  # Very dirty bugfix
 
+# shift related codes
+SHIFT_IS_ELAPSED = -4
+SHIFT_IS_OPEN = -3
+SHIFT_IS_CLOSED = -2
+
 
 def check_for_err_code(code):
     if code == _valid_codes:
@@ -11,7 +16,7 @@ def check_for_err_code(code):
         return code in ERROR_CODES
 
 
-_valid_codes = [0, -2, -3, FISCAL_ERROR_4]
+_valid_codes = [0, SHIFT_IS_CLOSED, SHIFT_IS_OPEN, FISCAL_ERROR_4]
 
 ERROR_CODES = [
     1, 2, 3, 5, 6, 7, 9, 12, 16, 17, 20,
