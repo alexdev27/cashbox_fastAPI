@@ -8,7 +8,7 @@ SHIFT_IS_CLOSED = -2
 
 
 def check_for_err_code(code):
-    if code == _valid_codes:
+    if code in _valid_codes:
         return False
     elif code == -1:
         return True
