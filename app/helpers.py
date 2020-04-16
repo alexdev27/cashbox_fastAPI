@@ -1,5 +1,6 @@
 import json
 import math
+from enum import Enum
 from uuid import uuid4
 from datetime import timezone
 from os import popen
@@ -35,14 +36,19 @@ def config_from_json_file(json_filename):
     with open(json_filename, 'r') as _file:
         _temp = json.load(_file)
 
+    class DeviceEnum(str, Enum):
+        pirit2f = 'pirit2f'
+        spark115f = 'spark115f'
+
     class JsonConfig(BaseModel):
         shopNumber: int = Field(..., title='Номер магазина', ge=0)
         department: int = Field(..., title='Номер дапартамента', ge=0)
         paygateAddress: str = Field(..., title='IP сервера')
         # timezone: str = Field(..., title='Часовой пояс')
         cashName: str = Field(..., title='Название кассы', min_length=3)
-        comport: str = Field(..., title='Номер COM порта (COM9 для примера)', min_length=4)
-        comportSpeed: int = Field(..., title='Скорость COM порта', gt=0)
+        comport: str = Field('', title='Номер COM порта (COM9 для примера)', min_length=4)
+        comportSpeed: int = Field('', title='Скорость COM порта', gt=0)
+        deviceName: DeviceEnum = Field(..., title='Название устройства')
 
     _config = JsonConfig(**_temp).dict()
     # print('config ', _config)

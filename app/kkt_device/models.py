@@ -74,7 +74,7 @@ def _handle_kkt_errors(func):
         try:
             result = func(*args, **kwargs)
             if result.get('error'):
-                msg = f'Ошибка при открытии порта: {result["message"]}'
+                msg = f'Ошибка при открытии порта: {result}'
                 raise CashboxException(data=msg)
             if result.get('status_printer_error_code'):
                 if result['status_printer_error_code'] > 0:
@@ -115,7 +115,8 @@ class Pirit2f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def open_shift(*args, **kwargs):
-        return real_kkt.open_shift(*args)
+        c_name = args[1]
+        return real_kkt.open_shift(c_name)
 
     @staticmethod
     @_handle_kkt_errors
