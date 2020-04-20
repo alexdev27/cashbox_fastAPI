@@ -5,7 +5,7 @@ from app import KKTDevice
 from app.cashbox.main_cashbox.models import Cashbox
 from app.exceptions import CashboxException
 from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, \
-    get_cashbox_tax_from_fiscal_tax, get_fiscal_tax_from_cashbox_tax
+    get_fiscal_tax_from_cashbox_tax
 from app.helpers import generate_internal_order_id, get_cheque_number, \
     round_half_down, round_half_up, get_WIN_UUID
 from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder, OrderSchema
