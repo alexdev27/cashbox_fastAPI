@@ -6,13 +6,15 @@ from fastapi.openapi.docs import (
     get_swagger_ui_oauth2_redirect_html,
 )
 
-from app.kkt_spark115f.models import Spark115f
-from app.kkt_device.models import Pirit2f
-from config import CASH_SETTINGS
 
-if CASH_SETTINGS['deviceName'] == 'pirit2f':
+from config import CASH_SETTINGS
+from .enums import AllowedDevices
+
+if CASH_SETTINGS['deviceName'] == AllowedDevices.pirit2f:
+    from app.kkt_device.models import Pirit2f
     KKTDevice = Pirit2f
-elif CASH_SETTINGS['deviceName'] == 'spark115f':
+elif CASH_SETTINGS['deviceName'] == AllowedDevices.spark115f:
+    from app.kkt_spark115f.models import Spark115f
     KKTDevice = Spark115f
 else:
     exit(f"Неизвестное имя устройства {CASH_SETTINGS['deviceName']}")
