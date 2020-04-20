@@ -3,6 +3,7 @@ from app.cashbox.main_cashbox.models import DataToPayGate
 from app.helpers import request_to_paygate
 from app.exceptions import CashboxException
 from app import celery
+from config import CASH_SETTINGS
 import asyncio
 
 
@@ -20,6 +21,7 @@ async def try_send_to_paygate():
     copy_of_data = deepcopy(DataToPayGate.objects())
     for payment_data in copy_of_data:
         data = payment_data.data
+        data['url'] = CASH_SETTINGS['paygateAddress'] + data['url']
         print('send to ', data['url'])
         try:
             await request_to_paygate(data['url'], 'POST', data)

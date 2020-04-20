@@ -5,10 +5,9 @@ from uuid import uuid4
 from datetime import timezone
 from os import popen
 from typing import Dict
-
-from pydantic import BaseModel, Field
 from aiohttp import ClientError, ClientSession
 from app.exceptions import CashboxException
+from app.schemas import JsonConfig
 
 
 def truncate(number, digits) -> float:
@@ -36,22 +35,12 @@ def config_from_json_file(json_filename):
     with open(json_filename, 'r') as _file:
         _temp = json.load(_file)
 
-    class DeviceEnum(str, Enum):
-        pirit2f = 'pirit2f'
-        spark115f = 'spark115f'
-
-    class JsonConfig(BaseModel):
-        shopNumber: int = Field(..., title='Номер магазина', ge=0)
-        department: int = Field(..., title='Номер дапартамента', ge=0)
-        paygateAddress: str = Field(..., title='IP сервера')
-        # timezone: str = Field(..., title='Часовой пояс')
-        cashName: str = Field(..., title='Название кассы', min_length=3)
-        comport: str = Field('', title='Номер COM порта (COM9 для примера)', min_length=4)
-        comportSpeed: int = Field('', title='Скорость COM порта', gt=0)
-        deviceName: DeviceEnum = Field(..., title='Название устройства')
-
     _config = JsonConfig(**_temp).dict()
-    # print('config ', _config)
+
+    # quick hack. include other fields to result, if there is any
+    for key in _temp.keys():
+        if key not in _config.keys():
+            _config[key] = _temp[key]
     return _config
 
 

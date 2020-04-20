@@ -1,9 +1,10 @@
+from os import environ as envs
 from functools import wraps
 from .err_codes import check_for_err_code, SHIFT_IS_OPEN, SHIFT_IS_CLOSED, SHIFT_IS_ELAPSED
 from .enums import KKTInfoEnum
 from comtypes.client import CreateObject, GetModule
-from config import DLL_PATH
 
+DLL_PATH = envs.get('SPARK_DLL', r'C:\SPARK115F\services\UDSpark.dll')
 GetModule(DLL_PATH)
 
 from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IFPSpark
