@@ -39,6 +39,6 @@ except ValueError as v_err:
     print(v_err)
     sys.exit()
 except Exception as err:
-    print('Непредвиденное исключение: ')
+    print('Непредвиденное исключение: ', type(err))
     print(str(err))
     sys.exit()
