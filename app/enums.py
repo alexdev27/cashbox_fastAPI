@@ -1,18 +1,22 @@
 from enum import IntEnum, Enum
 
-from config import CASH_SETTINGS
 
-payment_service = CASH_SETTINGS['paygateAddress']
+class AllowedDevices(str, Enum):
+    pirit2f = 'pirit2f'
+    spark115f = 'spark115f'
+
+    def __get__(self, instance, owner):
+        return self.value
 
 
 class PaygateURLs(Enum):
-    new_order = payment_service + '/createorder'
-    cancel_order = payment_service + '/cancelpay'
-    open_shift = payment_service + '/openshift'
-    close_shift = payment_service + '/closeshift'
-    insert_cash = payment_service + '/cashin'
-    remove_cash = payment_service + '/cashout'
-    register_cash = payment_service + '/regcash'
+    new_order = '/createorder'
+    cancel_order = '/cancelpay'
+    open_shift = '/openshift'
+    close_shift = '/closeshift'
+    insert_cash = '/cashin'
+    remove_cash = '/cashout'
+    register_cash = '/regcash'
 
     def __get__(self, instance, owner):
         return self.value
@@ -28,13 +32,13 @@ class CashboxTaxesNumbers(IntEnum):
     tax_20_percent = 20
 
 
-def get_cashbox_tax_from_fiscal_tax(num: int):
-    if FiscalTaxesNumbers.tax_10_percent == num:
-        return CashboxTaxesNumbers.tax_10_percent.value
-    elif FiscalTaxesNumbers.tax_20_percent == num:
-        return CashboxTaxesNumbers.tax_20_percent.value
-    else:
-        return CashboxTaxesNumbers.tax_20_percent.value
+# def get_cashbox_tax_from_fiscal_tax(num: int):
+#     if FiscalTaxesNumbers.tax_10_percent == num:
+#         return CashboxTaxesNumbers.tax_10_percent.value
+#     elif FiscalTaxesNumbers.tax_20_percent == num:
+#         return CashboxTaxesNumbers.tax_20_percent.value
+#     else:
+#         return CashboxTaxesNumbers.tax_20_percent.value
 
 
 def get_fiscal_tax_from_cashbox_tax(num: int):
