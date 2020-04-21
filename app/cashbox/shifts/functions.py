@@ -59,7 +59,7 @@ async def get_shift_info(*args, **kwargs):
     current_shift = Cashbox.box().current_opened_shift
     shift_info = {
         'shift_open_time': str(current_shift.creation_date).replace('T', ' '),
-        'total_money_in_cashbox': round_half_down(result['cash_balance'] / 100, 2),
+        'total_money_in_cashbox': round_half_down(result['cash_balance'], 2),
         'shift_number': current_shift.shiftNumber,
         'shift_total_inserted': current_shift.total_inserted_money_in_shift,
         'shift_total_removed': current_shift.total_removed_money_in_shift,
