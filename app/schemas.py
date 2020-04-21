@@ -32,10 +32,11 @@ class JsonConfig(BaseModel):
         except ValueError as i_err:
             raise ValueError(errstr + f'Порт дожлжен быть числом! Получен {port}')
 
-        try:
-            IPv4Address(ip)
-        except AddressValueError as v_err:
-            raise ValueError(errstr + f'Некоррестный формат IP адреса! Получен {ip}')
+        # will fix later
+        # try:
+        #     IPv4Address(ip)
+        # except AddressValueError as v_err:
+        #     raise ValueError(errstr + f'Некоррестный формат IP адреса! Получен {ip}')
 
         return value
 
