@@ -1,6 +1,8 @@
 import abc
 import copy
 from functools import wraps
+
+from app.helpers import round_half_down
 from config import CASH_SETTINGS as CS
 import cashbox as real_kkt
 from app.exceptions import CashboxException
@@ -139,11 +141,26 @@ class Pirit2f(IKKTDevice):
         money_given = kwargs.get('amount_entered', 0)
         pay_link = kwargs.get('pay_link', '')
         pref = kwargs.get('order_prefix', '')
-        return real_kkt.new_transaction(
+        result = real_kkt.new_transaction(
             cashier=cashier, payment_type=p_type, doc_type=d_type,
             wares=copy.copy(wares), amount=money_given, rrn=pay_link,
             order_prefix=pref
         )
+
+        info = {}
+        transaction_sum = round_half_down(result['transaction_sum'] - result['discount_sum'], 2)
+        info['cashier_name'] = result['cashier']
+        info['datetime'] = result['datetime']
+        info['doc_number'] = result['doc_number']
+        info['total_without_discount'] = transaction_sum
+
+        info['transaction_sum'] = transaction_sum
+        info['check_number'] = result['check_number']
+        info['order_num'] = int(str(result['check_number']).rsplit('.', maxsplit=1)[-1])
+        info['rrn'] = result.get('rrn', '')
+        info['pan_card'] = result.get('pan_card', '')
+        info['cardholder_name'] = result.get('cardholder_name', '')
+        return info
 
     @staticmethod
     @_handle_kkt_errors
