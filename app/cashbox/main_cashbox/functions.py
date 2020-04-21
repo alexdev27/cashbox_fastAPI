@@ -23,7 +23,7 @@ async def init_cashbox(*args, **kwargs):
     # # proj - номер системы, с которой происходит запрос
     obj = {'shop': shop_num, 'cashID': cash_id, 'systemID': sys_id, 'proj': 1}
     # print('TO paygate -> ', obj)
-    paygate_content = await request_to_paygate(PaygateURLs.register_cash, 'post', obj)
+    paygate_content = await request_to_paygate(CS['paygateAddress'] + PaygateURLs.register_cash, 'post', obj)
 
     cash_num = paygate_content.get('cashNumber')
 
