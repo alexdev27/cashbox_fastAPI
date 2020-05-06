@@ -215,7 +215,7 @@ class Spark115fHelper:
 
     @staticmethod
     def get_current_cash_balance(obj):
-        return int(str(obj.GetTextDeviceInfo(KKTInfoEnum.current_cash_balance)).strip())
+        return int(str(obj.GetTextDeviceInfo(KKTInfoEnum.current_cash_balance)).strip()) / 100
 
     @staticmethod
     def get_fiscal_memory_device_number(obj):
