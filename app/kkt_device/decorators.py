@@ -2,11 +2,12 @@ from functools import wraps
 from app.exceptions import CashboxException
 from app import KKTDevice
 from .constants import ERR_DB_SHIFT_OPENED_BUT_NOT_IN_FISCAL, ERR_FISCAL_SHIFT_OPENED_BUT_NOT_IN_DB, \
-    ERR_SHIFT_NUMBER_NOT_SYNCED, ERR_IF_FISCAL_ID_NOT_SYNCED
+    ERR_SHIFT_NUMBER_NOT_SYNCED, ERR_IF_FISCAL_ID_NOT_SYNCED, ERR_MSG_SHIFT_IS_EXPIRED
 from app.cashbox.main_cashbox.models import Cashbox
 
 from app.helpers import request_to_paygate
 from app.enums import PaygateURLs
+from datetime import datetime, timedelta
 
 from pprint import pprint as pp
 
@@ -16,6 +17,12 @@ async def _just_close_any_shift_by_fn_number(fn_num):
         await request_to_paygate(PaygateURLs.close_shift, 'POST', {'cashID': fn_num})
     except Exception as exc:
         pass
+
+
+def check_current_shift_is_expired(curr_shift):
+    is_expired = (datetime.now() - timedelta(hours=24)) > curr_shift.creation_date
+    if is_expired:
+        raise CashboxException(data=ERR_MSG_SHIFT_IS_EXPIRED)
 
 
 def kkt_comport_activation():
@@ -85,6 +92,7 @@ def validate_kkt_state(skip_shift_check=False):
                 return await func(*args, **kwargs)
             if is_opened_fiscal_shift:
                 if current_shift_in_db:
+                    check_current_shift_is_expired(current_shift_in_db)
                     if current_shift_in_db.shiftNumber != current_fiscal_shift_number:
                         raise CashboxException(data=ERR_SHIFT_NUMBER_NOT_SYNCED)
                 else:
