@@ -3,6 +3,7 @@ from functools import wraps
 from .err_codes import check_for_err_code, SHIFT_IS_OPEN, SHIFT_IS_CLOSED, SHIFT_IS_ELAPSED
 from .enums import KKTInfoEnum
 from comtypes.client import CreateObject, GetModule
+from app.logging import get_logger
 
 DLL_PATH = envs.get('SPARK_DLL', r'C:\SPARK115F\services\UDSpark.dll')
 GetModule(DLL_PATH)
@@ -20,6 +21,8 @@ from pprint import pprint as pp
 
 DEFAULT_CASHIER_PASSWORD = '22333'
 DEFAULT_CASHIER_NAME = 'Mr. Printer'
+
+arcus_logger = get_logger('arcus_logs.txt', 'arcus_logger')
 
 
 def _handle_kkt_errors(func):
@@ -50,22 +53,10 @@ def _exception_if_shift_is_elapsed(func):
     return wrapper
 
 
-
-
 class Spark115f(IKKTDevice):
 
     kkt_object = CreateObject(FPSpark, None, None, IFPSpark)
 
-    # @staticmethod
-    # @_handle_kkt_errors
-    # def register_fiscal_cashier(*args, **kwargs):
-    #     fio = kwargs['fiscal_cashier_fio']
-    #     pswd = kwargs['fiscal_cashier_password']
-    #     status = Spark115f.kkt_object.SetCashier('1', pswd, fio)
-    #     sh = Spark115fHelper
-    #     sh.check_for_bad_code(Spark115f.kkt_object, status)
-    #     info = sh.get_fully_formatted_info(Spark115f.kkt_object)
-    #     return info
 
     def startup(*args, **kwargs):
         # set default cashier
@@ -372,9 +363,14 @@ def print_arcus_document(strings):
 def arcus_check_errors(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        arcus_logger.info(f'=== Начало исполнения функции {func.__name__}')
         info = func(*args, **kwargs)
         if info.get('error', False):
+            arcus_logger.error(f'\t====== Error ======\n'
+                               f'\tОшибка при исполнении функции {func.__name__}.\n'
+                               f'\tДетали ошибки: {info}')
             raise Exception(f'Ошибка аркуса: {info}')
+        arcus_logger.info(f'=== Функция {func.__name__} завершилась без ошибок')
         return info
     return wrapper
 
