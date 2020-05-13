@@ -1,4 +1,3 @@
-import concurrent.futures
 import logging
 import sys
 import os
@@ -8,7 +7,6 @@ from logging.handlers import TimedRotatingFileHandler
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 LOGS_DIR = os.path.expanduser('~') + '/cashbox_logs'
 
-# executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
 # Track logging filenames
 log_filenames = []
@@ -53,28 +51,30 @@ def logging_decorator(filename, logger_name, operation=''):
         async def wrapper(*args, **kwargs):
             logger = get_logger(filename, logger_name)
             data_from_request = kwargs.get('valid_schema_data', '')
-            logger.info(f"""
+            msg = f"""
             ----------------------------------------------------
             ------> Начало исполнения операции "{operation}" ....
             ----------------------------------------------------
-            Данные с запроса ----
-            {data_from_request}
-            """)
+            """
+
+            if data_from_request:
+                _msg = f'\n------> Данные с запроса: {data_from_request} \n'
+                msg += _msg
+            logger.info(msg)
             try:
                 result = await func(*args, **kwargs)
-                logger.info("""
-                ------> Done
+                logger.info(f"""
+                ------>"{operation}" Завершилась
                 """)
                 return result
             except CashboxException as exc:
 
-                msg = f'Возникло исключение {exc.__class__.__name__}. \n' \
-                      f'Информация из ошибки: {exc.data["errors"]} \n'
+                err_msg = f'Возникло исключение {exc.__class__.__name__}. \n' \
+                          f'Информация из ошибки: {exc.data["errors"]} \n'
 
                 if data_from_request:
-                    msg += f'Данные с запроса: {data_from_request}'
-                logger.error(msg)
-                # executor.submit(logger.error, msg)
+                    err_msg += f'\nДанные с запроса: {data_from_request}'
+                logger.error(err_msg)
 
                 raise
         return wrapper
