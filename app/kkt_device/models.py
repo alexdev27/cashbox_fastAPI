@@ -7,6 +7,8 @@ from config import CASH_SETTINGS as CS
 import cashbox as real_kkt
 from app.exceptions import CashboxException
 
+DEFAULT_CASHIER_NAME = 'Mr. Printer'
+
 
 class IKKTDevice(metaclass=abc.ABCMeta):
     @classmethod
@@ -134,7 +136,7 @@ class Pirit2f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def handle_order(*args, **kwargs):
-        cashier = kwargs['cashier_name']
+        cashier = kwargs['cashier_name'] or DEFAULT_CASHIER_NAME
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']
