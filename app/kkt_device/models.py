@@ -2,12 +2,15 @@ import abc
 import copy
 from functools import wraps
 
+from app.logging import get_logger
 from app.helpers import round_half_down
 from config import CASH_SETTINGS as CS
 import cashbox as real_kkt
 from app.exceptions import CashboxException
 
 DEFAULT_CASHIER_NAME = 'Mr. Printer'
+
+arcus_logger = get_logger('arcus_logs.txt', 'arcus_logger')
 
 
 class IKKTDevice(metaclass=abc.ABCMeta):
@@ -125,8 +128,20 @@ class Pirit2f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def close_shift(*args, **kwargs):
-        real_kkt.close_shift_pin_pad(*args)
-        return real_kkt.close_shift(*args)
+        info = real_kkt.close_shift(*args)
+
+        arcus_logger.info(f'=== Начало исполнения функции в пакете {__file__}'
+                          f' - {real_kkt.close_shift_pin_pad.__name__}')
+
+        try:
+            real_kkt.close_shift_pin_pad(*args)
+            arcus_logger.info(f'=== Функция {real_kkt.close_shift_pin_pad.__name__} завершилась без ошибок')
+        except Exception as e:
+            arcus_logger.error(f'\t====== Error ======\n'
+                               f'\tОшибка при исполнении функции {real_kkt.close_shift_pin_pad.__name__}.\n'
+                               f'\tДетали ошибки: {str(e)}')
+
+        return info
 
     @staticmethod
     @_handle_kkt_errors
