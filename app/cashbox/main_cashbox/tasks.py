@@ -22,7 +22,8 @@ async def try_send_to_paygate():
     for payment_data in copy_of_data:
         data = payment_data.data
         data['url'] = CASH_SETTINGS['paygateAddress'] + data['url']
-        print('send to ', data['url'])
+        print(f'send to {data["url"]}')
+        print(f'data to send \n {data}')
         try:
             await request_to_paygate(data['url'], 'POST', data)
         except CashboxException as exc:
