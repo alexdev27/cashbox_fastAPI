@@ -7,7 +7,7 @@ from app.exceptions import CashboxException
 from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, \
     get_fiscal_tax_from_cashbox_tax
 from app.helpers import generate_internal_order_id, get_cheque_number, \
-    round_half_down, round_half_up, get_WIN_UUID
+    round_half_down, round_half_up, get_WIN_UUID, make_request
 from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder, OrderSchema
 from .models import Order
 from config import CASH_SETTINGS as CS
@@ -87,6 +87,13 @@ async def create_order(*args, **kwargs):
     to_paygate.update({'url': PaygateURLs.new_order})
     cashbox.add_order(order)
     cashbox.save_paygate_data_for_send(to_paygate)
+
+    to_print = {
+        'pref': order_prefix,
+        'num': data_to_db['order_number'],
+        'wares': wares
+    }
+    await print_to_secondary_printer(to_print)
 
     to_response, errs = ConvertToResponseCreateOrder().load(
         {'device_id': get_WIN_UUID(), **kkt_kwargs, **data_to_db}
@@ -223,3 +230,17 @@ def _build_wares(wares):
         _wares.append(ware)
 
     return _wares
+
+
+async def print_to_secondary_printer(data):
+    if not bool(CS['printerForOrder']):
+        return
+
+    strs = []
+    str1 = f'Заказ: {data["pref"]}{data["num"]}'
+    strs.append(str1)
+
+    for ware in data['wares']:
+        _str = f'{ware["name"]}. Кол-во: {ware["quantity"]}'
+        strs.append(_str)
+    await make_request(CS['printerForOrder'], 'POST', {'data': strs}, do_raise=False)
