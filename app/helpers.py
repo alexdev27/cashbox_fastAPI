@@ -44,7 +44,7 @@ def config_from_json_file(json_filename):
     return _config
 
 
-async def make_request(url: str, method: str, data) -> Dict:
+async def make_request(url: str, method: str, data, do_raise=True) -> Dict:
     try:
         async with ClientSession() as session:
             async with session.request(method, url, json=data) as result:
@@ -54,8 +54,10 @@ async def make_request(url: str, method: str, data) -> Dict:
                 return await result.json()
         # result = await app.aiohttp_requests.request(method, url, json=data)
     except ClientError as exc:
-        raise CashboxException(data=str(exc))
-
+        if do_raise:
+            raise CashboxException(data=str(exc))
+        else:
+            return
 
 async def request_to_paygate(url: str, method: str, data: Dict) -> Dict:
     content = await make_request(url, method, data)
