@@ -61,11 +61,12 @@ async def make_request(url: str, method: str, data, do_raise=True) -> Dict:
             return
 
 
-async def request_to_paygate(url: str, method: str, data: Dict) -> Dict:
+async def request_to_paygate(url: str, method: str, data: Dict, do_raise_if_500=True) -> Dict:
     content = await make_request(url, method, data)
     if content['statusCode'] != 200:
         msg = f'Paygate вернул код ответа 500. Сообщение: {content["errorMessage"]}'
-        raise CashboxException(data=msg)
+        if do_raise_if_500:
+            raise CashboxException(data=msg)
     return content
 
 
