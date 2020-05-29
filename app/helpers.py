@@ -55,9 +55,11 @@ async def make_request(url: str, method: str, data, do_raise=True) -> Dict:
         # result = await app.aiohttp_requests.request(method, url, json=data)
     except ClientError as exc:
         if do_raise:
-            raise CashboxException(data=str(exc))
+            msg = f'Класс ошибки: {exc.__class__}; Детали ошибки: {str(exc)}'
+            raise CashboxException(data=msg)
         else:
             return
+
 
 async def request_to_paygate(url: str, method: str, data: Dict) -> Dict:
     content = await make_request(url, method, data)
