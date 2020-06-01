@@ -1,8 +1,7 @@
 from app.kkt_device.decorators import kkt_comport_activation, validate_kkt_state, \
     check_for_opened_shift_in_fiscal, check_for_closed_shift_in_fiscal
-from app.cashbox.main_cashbox.models import Cashbox
+from app.cashbox.main_cashbox.models import Cashbox, System
 from app import KKTDevice
-from app.helpers import get_WIN_UUID
 from app.enums import PaygateURLs
 from .schemas import OpenShiftSchema, CloseShiftSchema
 from app.helpers import round_half_down
@@ -22,7 +21,7 @@ async def open_new_shift(*args, **kwargs):
     data_to_db = {
         'cashier_name': cashier_name, 'cashier_id': cashier_id,
         'shop_number': cashbox.shop, 'project_number': cashbox.project_number,
-        'system_id': get_WIN_UUID(), 'cash_number': cashbox.cash_number,
+        'system_id': System.get_sys_id(), 'cash_number': cashbox.cash_number,
         'cash_name': cashbox.cash_name
     }
     shift, errs = OpenShiftSchema().load({**kkt_info, **open_shift_data, **data_to_db})

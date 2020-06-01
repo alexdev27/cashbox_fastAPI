@@ -1,8 +1,8 @@
 from app.kkt_device.decorators import kkt_comport_activation, validate_kkt_state
 from config import CASH_SETTINGS as CS
 from app.exceptions import CashboxException
-from app.helpers import request_to_paygate, get_WIN_UUID
-from .models import Cashbox
+from app.helpers import request_to_paygate
+from .models import Cashbox, System
 from app.enums import PaygateURLs
 from dateutil import parser
 from app.logging import logging_decorator
@@ -14,7 +14,7 @@ async def init_cashbox(*args, **kwargs):
     """ Первоначальная инициализация кассы. """
 
     result = kwargs['opened_port_info']
-    shop_num, cash_id, sys_id = (CS['shopNumber'], result.get('fn_number'), get_WIN_UUID())
+    shop_num, cash_id, sys_id = (CS['shopNumber'], result.get('fn_number'), System.get_sys_id())
 
     if not cash_id:
         err = 'Ошибка: Не удалось получить из ККТ fn_number'
@@ -22,9 +22,9 @@ async def init_cashbox(*args, **kwargs):
 
     # # proj - номер системы, с которой происходит запрос
     obj = {'shop': shop_num, 'cashID': cash_id, 'systemID': sys_id, 'proj': 1}
-    # print('TO paygate -> ', obj)
+    print('request to paygate -> ', obj)
     paygate_content = await request_to_paygate(CS['paygateAddress'] + PaygateURLs.register_cash, 'post', obj)
-
+    print('response from paygate', paygate_content)
     cash_num = paygate_content.get('cashNumber')
 
     cashbox = Cashbox.objects(cash_id=cash_id, cash_number=cash_num).first()
@@ -67,4 +67,4 @@ async def register_cashbox_character(*args, **kwargs):
 
 @logging_decorator('main.log', 'main_module_logger', 'GET SYS ID')
 async def get_sys_id():
-    return {'device_id': get_WIN_UUID()}
+    return {'device_id': System.get_sys_id()}

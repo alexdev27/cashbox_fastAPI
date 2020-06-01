@@ -2,12 +2,12 @@ from copy import deepcopy
 from app.kkt_device.decorators import validate_kkt_state, kkt_comport_activation, \
     check_for_opened_shift_in_fiscal
 from app import KKTDevice
-from app.cashbox.main_cashbox.models import Cashbox
+from app.cashbox.main_cashbox.models import Cashbox, System
 from app.exceptions import CashboxException
 from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, \
     get_fiscal_tax_from_cashbox_tax
 from app.helpers import generate_internal_order_id, get_cheque_number, \
-    round_half_down, round_half_up, get_WIN_UUID, make_request
+    round_half_down, round_half_up, make_request
 from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder, OrderSchema
 from .models import Order
 from config import CASH_SETTINGS as CS
@@ -96,7 +96,7 @@ async def create_order(*args, **kwargs):
     await print_to_secondary_printer(to_print)
 
     to_response, errs = ConvertToResponseCreateOrder().load(
-        {'device_id': get_WIN_UUID(), **kkt_kwargs, **data_to_db}
+        {'device_id': System.get_sys_id(), **kkt_kwargs, **data_to_db}
     )
     return to_response
 
