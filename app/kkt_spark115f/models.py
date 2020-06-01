@@ -1,9 +1,11 @@
-from os import environ as envs
 from functools import wraps
-from .err_codes import check_for_err_code, SHIFT_IS_OPEN, SHIFT_IS_CLOSED, SHIFT_IS_ELAPSED
-from .enums import KKTInfoEnum
+from os import environ as envs
+
 from comtypes.client import CreateObject, GetModule
+
 from app.logging import get_logger
+from .enums import KKTInfoEnum
+from .err_codes import check_for_err_code, SHIFT_IS_OPEN, SHIFT_IS_CLOSED, SHIFT_IS_ELAPSED
 
 DLL_PATH = envs.get('SPARK_DLL', r'C:\SPARK115F\services\UDSpark.dll')
 GetModule(DLL_PATH)
@@ -12,12 +14,10 @@ from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IF
 from app.enums import DocumentTypes, PaymentChoices
 from app.kkt_device.models import IKKTDevice
 from app.exceptions import CashboxException
-from traceback import print_tb
-from sys import exc_info
-from app.helpers import round_half_down, round_half_up
+from app.helpers import round_half_down
+from dateutil import parser
 
 import arcus2
-from pprint import pprint as pp
 
 DEFAULT_CASHIER_PASSWORD = '22333'
 DEFAULT_CASHIER_NAME = 'Mr. Printer'
@@ -40,6 +40,7 @@ def _handle_kkt_errors(func):
             # print_tb(exc_info()[2], 20)
             Spark115f.kkt_object.DeinitDevice()
             raise CashboxException(data=msg)
+
     return wrapper
 
 
@@ -50,13 +51,12 @@ def _exception_if_shift_is_elapsed(func):
             msg = 'Смена открыта более чем 24 часа. Закройте смену и откройте снова'
             raise Exception(msg)
         return func(*args, **kwargs)
+
     return wrapper
 
 
 class Spark115f(IKKTDevice):
-
     kkt_object = CreateObject(FPSpark, None, None, IFPSpark)
-
 
     def startup(*args, **kwargs):
         # set default cashier
@@ -90,7 +90,7 @@ class Spark115f(IKKTDevice):
         cashier_name = args[0] if args else DEFAULT_CASHIER_NAME
         apply_cashier_to_operation(cashier_name)
         close_shift()
-        try: ### Временно ###
+        try:  ### Временно ###
             arcus_close_shift()
         except Exception as e:
             pass
@@ -133,7 +133,7 @@ class Spark115f(IKKTDevice):
         info['transaction_sum'] = kwargs.get('total_price', 0)
         info['check_number'] = check_num
         info['total_without_discount'] = kwargs.get('total_price_without_discount', 0)
-        info['order_num'] = order_num+1
+        info['order_num'] = order_num + 1
         info['rrn'] = noncash_info.get('rrn', '')
         info['pan_card'] = noncash_info.get('pan_card', '')
         info['cardholder_name'] = noncash_info.get('cardholder_name', '')
@@ -191,7 +191,7 @@ class Spark115fHelper:
             'cash_balance': h.get_current_cash_balance(obj),
             'doc_number': h.get_last_doc_number(obj)
         }
-        print(info)
+        print('fully formatted info ', info)
         return info
 
     @staticmethod
@@ -205,7 +205,8 @@ class Spark115fHelper:
     @staticmethod
     def get_current_time(obj):
         data = str(obj.GetTextDeviceInfo(KKTInfoEnum.current_time_and_date)).strip()
-        return data
+        date = parser.parse(data, dayfirst=True).strftime('%Y-%m-%d %H:%M:%S')
+        return date
 
     @staticmethod
     def get_current_cash_balance(obj):
@@ -274,7 +275,7 @@ def check_for_spark_error_codes(func):
 
 
 @check_for_spark_error_codes
-def register_cashier(fio,  pswd=DEFAULT_CASHIER_PASSWORD, pos='1'):
+def register_cashier(fio, pswd=DEFAULT_CASHIER_PASSWORD, pos='1'):
     cashier_fio = fio or 'Mr. Printer'
     return Spark115f.kkt_object.SetCashier(str(pos), str(pswd), str(cashier_fio))
 
@@ -375,6 +376,7 @@ def arcus_check_errors(func):
             raise Exception(f'Ошибка аркуса: {info}')
         arcus_logger.info(f'=== Функция {func.__name__} завершилась без ошибок')
         return info
+
     return wrapper
 
 
@@ -399,7 +401,6 @@ def arcus_cancel_last_document():
 
 
 def create_order(kwargs):
-
     money_given = int(kwargs.get('amount_entered', 0) * 100)
 
     total_price = 0
