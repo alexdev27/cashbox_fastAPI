@@ -1,12 +1,10 @@
-from app.kkt_device.decorators import kkt_comport_activation, validate_kkt_state
-from config import CASH_SETTINGS as CS
+from app.enums import PaygateURLs
 from app.exceptions import CashboxException
 from app.helpers import request_to_paygate
-from .models import Cashbox, System
-from app.enums import PaygateURLs
-from dateutil import parser
+from app.kkt_device.decorators import kkt_comport_activation
 from app.logging import logging_decorator
-
+from config import CASH_SETTINGS as CS
+from .models import Cashbox, System
 
 
 @kkt_comport_activation()
@@ -31,13 +29,13 @@ async def init_cashbox(*args, **kwargs):
     Cashbox.set_all_inactive()
     if cashbox:
         cashbox.reload()
-        cashbox.activation_date = parser.parse(result['datetime'])
+        cashbox.activation_date = result['datetime']
         cashbox.is_active = True
         cashbox.save().reload()
         print('is cashbox active right now? ', cashbox.is_active)
     else:
         cashbox = Cashbox()
-        cashbox.creation_date = parser.parse(result['datetime'])
+        cashbox.creation_date = result['datetime']
         cashbox.shop = CS['shopNumber']
         cashbox.cash_number = cash_num
         cashbox.cash_name = CS['cashName']
@@ -56,7 +54,7 @@ async def register_cashbox_character(*args, **kwargs):
     cashbox.save()
     return {'character': char}
 
-#
+
 # @kkt_comport_activation()
 # async def register_fiscal_cashier(*args, **kwargs):
 #     req_data = kwargs['valid_schema_data']
