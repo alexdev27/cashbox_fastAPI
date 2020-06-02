@@ -44,11 +44,13 @@ def config_from_json_file(json_filename):
     return _config
 
 
-async def make_request(url: str, method: str, data, do_raise=True) -> Dict:
+async def make_request(url: str, method: str, data, do_raise=True):
     try:
         async with ClientSession() as session:
             async with session.request(method, url, json=data) as result:
                 if result.status >= 400:
+                    if not do_raise:
+                        return
                     err = await result.text()
                     raise CashboxException(data=err)
                 return await result.json()
