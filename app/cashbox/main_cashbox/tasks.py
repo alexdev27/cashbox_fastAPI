@@ -14,7 +14,7 @@ logger = get_task_logger(__name__)
 
 @celery.on_after_configure.connect
 def setup_periodic(sender, **kwargs):
-    sender.add_periodic_task(20, check_cashbox_info.s(), name='data_to_paygate')
+    sender.add_periodic_task(120, check_cashbox_info.s(), name='data_to_paygate')
 
 
 async def try_send_to_paygate():
@@ -22,9 +22,11 @@ async def try_send_to_paygate():
     for payment_data in copy_of_data:
         data = payment_data.data
         data['url'] = CASH_SETTINGS['paygateAddress'] + data['url']
-        print('send to ', data['url'])
+        print(f'send to {data["url"]}')
+        print(f'data to send \n {data}')
         try:
-            await request_to_paygate(data['url'], 'POST', data)
+            await request_to_paygate(data['url'], 'POST', data,
+                                     do_raise_if_500=data.get('do_raise', True))
         except CashboxException as exc:
             msg = f' <<< CashboxException inside Celery task! >>>  {exc.data}'
             print(msg)

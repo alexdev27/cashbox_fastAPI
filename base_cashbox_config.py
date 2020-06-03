@@ -10,7 +10,8 @@ def base_cashbox_config_dict(device_name='Default'):
     config['cashName'] = str(input('\t' + 'Введите название кассы: ')).strip()
     config['shopNumber'] = int(str(input('\t' + 'Введите номер магазина: ')).strip())
     config['department'] = int(str(input('\t' + 'Введите департамент: ')).strip())
-    config['paygateAddress'] = str(input('\t' + 'Введите адрес плятежного шлюза (ip:port или доменное имя): ')).strip()
+    config['paygateAddress'] = str(input('\t' + 'Введите адрес плятежного шлюза (http://ip:port или доменное имя): ')).strip()
+    config['printerForOrder'] = str(input('\t' + 'Введите адрес принтера заказов (Оставить пустым если не нужно): ')).strip()
     return config
 
 

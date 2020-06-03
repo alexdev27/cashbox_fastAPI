@@ -29,6 +29,10 @@ ERR_DB_SHIFT_OPENED_BUT_NOT_IN_FISCAL = """
 """
 
 
+ERR_MSG_SHIFT_IS_EXPIRED = 'Смена открыта более 24-х часов. ' \
+                           'Закройте смену и откройте снова'
+
+
 ERR_MSG_IF_FISCAL_ERR_MSG_IS_BLANK = """
 Текст ошибки отсутствует
 """

@@ -44,24 +44,31 @@ def config_from_json_file(json_filename):
     return _config
 
 
-async def make_request(url: str, method: str, data) -> Dict:
+async def make_request(url: str, method: str, data, do_raise=True):
     try:
         async with ClientSession() as session:
             async with session.request(method, url, json=data) as result:
                 if result.status >= 400:
+                    if not do_raise:
+                        return
                     err = await result.text()
                     raise CashboxException(data=err)
                 return await result.json()
         # result = await app.aiohttp_requests.request(method, url, json=data)
     except ClientError as exc:
-        raise CashboxException(data=str(exc))
+        if do_raise:
+            msg = f'Класс ошибки: {exc.__class__}; Детали ошибки: {str(exc)}'
+            raise CashboxException(data=msg)
+        else:
+            return
 
 
-async def request_to_paygate(url: str, method: str, data: Dict) -> Dict:
+async def request_to_paygate(url: str, method: str, data: Dict, do_raise_if_500=True) -> Dict:
     content = await make_request(url, method, data)
     if content['statusCode'] != 200:
         msg = f'Paygate вернул код ответа 500. Сообщение: {content["errorMessage"]}'
-        raise CashboxException(data=msg)
+        if do_raise_if_500:
+            raise CashboxException(data=msg)
     return content
 
 

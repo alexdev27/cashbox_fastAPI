@@ -2,10 +2,14 @@ import abc
 import copy
 from functools import wraps
 
+from app.logging import get_logger
 from app.helpers import round_half_down
 from config import CASH_SETTINGS as CS
 import cashbox as real_kkt
 from app.exceptions import CashboxException
+
+DEFAULT_CASHIER_NAME = 'Mr. Printer'
+
 
 
 class IKKTDevice(metaclass=abc.ABCMeta):
@@ -77,15 +81,26 @@ def _handle_kkt_errors(func):
             result = func(*args, **kwargs)
             if result.get('error'):
                 msg = f'Ошибка при открытии порта: {result}'
-                raise CashboxException(data=msg)
+                _msg = f'{result.get("description_error", "")} {result.get("message", "")}'
+
+                raise CashboxException(data=_msg, to_logging=msg)
+                # raise CashboxException(data=msg)
             if result.get('status_printer_error_code'):
                 if result['status_printer_error_code'] > 0:
                     code = result['status_printer_error_code']
                     err_msg = result['status_printer_message']
                     msg = f'Ошибка фискального регистратора: ' \
                           f'Код: {code} Сообщение: {err_msg}'
-                    raise CashboxException(data=msg)
+                    raise CashboxException(data=msg, to_logging=f'Ошибка фискальника {result}')
             return result
+
+        except CashboxException as c_exc:
+            msg = f'Фискальный регистратор не смог ' \
+                  f'выполнить функцию ({func.__name__}) ' \
+                  f'Тип ошибки: {c_exc.__class__.__name__} ' \
+                  f'Описание: {str(c_exc)}'
+            to_log = c_exc.to_logging if c_exc.to_logging else msg
+            raise CashboxException(data=msg, to_logging=to_log)
         except Exception as exc:
             msg = f'Фискальный регистратор не смог ' \
                   f'выполнить функцию ({func.__name__}) ' \
@@ -123,8 +138,24 @@ class Pirit2f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def close_shift(*args, **kwargs):
-        real_kkt.close_shift_pin_pad(*args)
-        return real_kkt.close_shift(*args)
+        info = real_kkt.close_shift(*args)
+
+        arcus_logger = get_logger('arcus_logs.txt', 'arcus_logger')
+
+        arcus_logger.info(f'=== Начало исполнения функции в пакете {__file__}'
+                          f' - {real_kkt.close_shift_pin_pad.__name__}')
+
+        try:
+            arcus_info = real_kkt.close_shift_pin_pad(*args)
+            if arcus_info['error']:
+                raise Exception(arcus_info)
+            arcus_logger.info(f'=== Функция {real_kkt.close_shift_pin_pad.__name__} завершилась без ошибок')
+        except Exception as e:
+            arcus_logger.error(f'\t====== Error ======\n'
+                               f'\tОшибка при исполнении функции {real_kkt.close_shift_pin_pad.__name__}.\n'
+                               f'\tДетали ошибки: {str(e)}')
+
+        return info
 
     @staticmethod
     @_handle_kkt_errors
@@ -134,7 +165,7 @@ class Pirit2f(IKKTDevice):
     @staticmethod
     @_handle_kkt_errors
     def handle_order(*args, **kwargs):
-        cashier = kwargs['cashier_name']
+        cashier = kwargs['cashier_name'] or DEFAULT_CASHIER_NAME
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
         wares = kwargs['wares']

@@ -3,6 +3,7 @@ from typing import Dict
 from mongoengine import Document, ReferenceField, DictField, \
     ListField, StringField, BooleanField, DateTimeField, IntField, DENY
 
+from uuid import uuid4
 from app.cashbox.orders.models import Order
 from app.cashbox.shifts.models import OpenShift, CloseShift
 from app.enums import DocumentTypes
@@ -96,3 +97,21 @@ class DataToPayGate(Document):
     data = DictField(required=True)
 
     meta = {'collection': 'to_paygate', 'strict': False, 'ordering': ['creation_date']}
+
+
+class System(Document):
+    system_uuid = StringField(required=True)
+
+    meta = {'collection': 'system_id', 'strict': False}
+
+    @staticmethod
+    def get_sys_id():
+        obj = System._get_or_create()
+        return obj.system_uuid
+
+    @staticmethod
+    def _get_or_create():
+        if list(System.objects()):
+            return System.objects().first()
+        else:
+            return System(system_uuid=str(uuid4())).save().reload()

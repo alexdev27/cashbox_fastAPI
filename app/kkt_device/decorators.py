@@ -2,20 +2,27 @@ from functools import wraps
 from app.exceptions import CashboxException
 from app import KKTDevice
 from .constants import ERR_DB_SHIFT_OPENED_BUT_NOT_IN_FISCAL, ERR_FISCAL_SHIFT_OPENED_BUT_NOT_IN_DB, \
-    ERR_SHIFT_NUMBER_NOT_SYNCED, ERR_IF_FISCAL_ID_NOT_SYNCED
+    ERR_SHIFT_NUMBER_NOT_SYNCED, ERR_IF_FISCAL_ID_NOT_SYNCED, ERR_MSG_SHIFT_IS_EXPIRED
 from app.cashbox.main_cashbox.models import Cashbox
 
-from app.helpers import request_to_paygate
 from app.enums import PaygateURLs
+from datetime import datetime, timedelta
 
-from pprint import pprint as pp
+
+def urgent_close_shift(fn_num, cashbox):
+    # new solution
+    data = {
+        'do_raise': False,
+        'cashID': fn_num,
+        'url': PaygateURLs.close_shift
+    }
+    cashbox.save_paygate_data_for_send(data)
 
 
-async def _just_close_any_shift_by_fn_number(fn_num):
-    try:
-        await request_to_paygate(PaygateURLs.close_shift, 'POST', {'cashID': fn_num})
-    except Exception as exc:
-        pass
+def check_current_shift_is_expired(curr_shift):
+    is_expired = (datetime.now() - timedelta(hours=24)) > curr_shift.creation_date
+    if is_expired:
+        raise CashboxException(data=ERR_MSG_SHIFT_IS_EXPIRED)
 
 
 def kkt_comport_activation():
@@ -85,19 +92,21 @@ def validate_kkt_state(skip_shift_check=False):
                 return await func(*args, **kwargs)
             if is_opened_fiscal_shift:
                 if current_shift_in_db:
+                    check_current_shift_is_expired(current_shift_in_db)
                     if current_shift_in_db.shiftNumber != current_fiscal_shift_number:
                         raise CashboxException(data=ERR_SHIFT_NUMBER_NOT_SYNCED)
                 else:
-                    # TODO: Подумать о экстренном закрытии смены на paygate сервисе вместе с фискальиком
+                    # Экстренное закрытие смены
+                    urgent_close_shift(current_fiscal_device_number_in_db, cb)
                     KKTDevice.force_close_shift()
-                    await _just_close_any_shift_by_fn_number(current_fiscal_device_number_in_db)
                     msg = f'{ERR_FISCAL_SHIFT_OPENED_BUT_NOT_IN_DB}. ' \
                           f'Смена закрыта принудительно. ' \
                           f'Теперь откройте смену'
                     raise CashboxException(data=msg)
             else:
                 if current_shift_in_db:
-                    await _just_close_any_shift_by_fn_number(current_fiscal_device_number_in_db)
+                    # Экстренное закрытие смены
+                    urgent_close_shift(current_fiscal_device_number_in_db, cb)
                     cb.current_opened_shift = None
                     cb.save()
                     raise CashboxException(data=ERR_DB_SHIFT_OPENED_BUT_NOT_IN_FISCAL)
