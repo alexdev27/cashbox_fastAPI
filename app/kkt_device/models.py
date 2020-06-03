@@ -178,6 +178,10 @@ class Pirit2f(IKKTDevice):
             order_prefix=pref
         )
 
+        if result['error']:
+            msg = 'Терминал безналичной оплаты вернул ошибку во время транзакции'
+            raise CashboxException(data=msg, to_logging=msg + f'\nИнформация с аркуса: {result}')
+
         info = {}
         transaction_sum = round_half_down(result['transaction_sum'] - result['discount_sum'], 2)
         info['cashier_name'] = result['cashier']
