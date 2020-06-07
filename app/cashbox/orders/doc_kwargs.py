@@ -1,5 +1,6 @@
 from starlette.status import HTTP_200_OK
-from .schemas import ResponseCreateOrder, ResponseReturnOrder, ResponseRoundPrice
+from .schemas import ResponseCreateOrder, ResponseReturnOrder, ResponseRoundPrice, \
+    ResponsePartialReturn
 
 doc_create_order = {
     'response_model': ResponseCreateOrder,
@@ -22,5 +23,13 @@ doc_round_price = {
     'description': 'Округление цены',
     'summary': 'Округление цены',
     'response_description': 'Округление цены прошло успешно',
+    'status_code': HTTP_200_OK
+}
+
+doc_partial_return = {
+    'response_model': ResponsePartialReturn,
+    'description': 'Частичный возват',
+    'summary': 'Частичный возврат',
+    'response_description': 'Возврат прошел успешно',
     'status_code': HTTP_200_OK
 }
