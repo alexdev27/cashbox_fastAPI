@@ -14,7 +14,7 @@ logger = get_task_logger(__name__)
 
 @celery.on_after_configure.connect
 def setup_periodic(sender, **kwargs):
-    sender.add_periodic_task(120, check_cashbox_info.s(), name='data_to_paygate')
+    sender.add_periodic_task(10, check_cashbox_info.s(), name='data_to_paygate')
 
 
 async def try_send_to_paygate():
