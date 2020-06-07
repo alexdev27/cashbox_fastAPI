@@ -7,7 +7,7 @@ from app.exceptions import CashboxException
 from app.enums import DocumentTypes, PaymentChoices, PaygateURLs, \
     get_fiscal_tax_from_cashbox_tax
 from app.helpers import generate_internal_order_id, get_cheque_number, \
-    round_half_down, round_half_up, make_request
+    round_half_down, round_half_up, make_request, request_to_paygate
 from .schemas import PaygateOrderSchema, ConvertToResponseCreateOrder, OrderSchema
 from .models import Order
 from config import CASH_SETTINGS as CS
@@ -83,8 +83,12 @@ async def create_order(*args, **kwargs):
     order, errs = OrderSchema().load({**kkt_kwargs, **data_to_db})
     pp(errs)
     to_paygate, _errs = PaygateOrderSchema().dump(order)
+    to_paygate.update({'amount': data_to_db['amount_with_discount']})
     to_paygate.update({'proj': cashbox.project_number})
     to_paygate.update({'url': PaygateURLs.new_order})
+
+    pp('to paygate')
+    pp(to_paygate)
     cashbox.add_order(order)
     cashbox.save_paygate_data_for_send(to_paygate)
 
@@ -163,14 +167,13 @@ async def round_price(*args, **kwargs):
 
 
 def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_product=False):
-
     _wares = deepcopy(wares)
     total_sum = 0
     for w in _wares:
         total_sum = w['price'] * w['quantity'] + total_sum
 
     total_sum = round_half_down(total_sum, 2)
-    num_dec = round_half_down(float(str(total_sum-int(total_sum))[1:]), 2)
+    num_dec = round_half_down(float(str(total_sum - int(total_sum))[1:]), 2)
 
     item = max(_wares, key=lambda x: x['price'])
 
@@ -208,10 +211,83 @@ def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_produc
     return _wares
 
 
+@kkt_comport_activation()
+@validate_kkt_state()
+@check_for_opened_shift_in_fiscal()
+async def partial_return(*args, **kwargs):
+    cashbox = Cashbox.box()
+    kkt_info = kwargs['opened_port_info']
+    data = kwargs['valid_schema_data']
+    order_id = data['internal_order_uuid']
+    doc_type = DocumentTypes.RETURN.value
+    total_price = data['total_price_with_discount']
+    data_for_checkstatus = {'proj': cashbox.project_number, 'clientOrderID': order_id}
+    checkstatus_url = CS['paygateAddress'] + PaygateURLs.check_order_status
+
+    checkstatus = await request_to_paygate(checkstatus_url, 'POST', data_for_checkstatus)
+
+
+
+    # CALCULATE
+
+    _wares = []
+    total_wares_sum = 0
+
+    for ware in data['wares']:
+        total_wares_sum += ware['amount']
+        _wares.append({
+            'name': ware['name'],
+            'price': ware['priceDiscount'],
+            'barcode': ware['barcode'],
+            'tax_number': ware['tax_number'],
+            'quantity': ware['quantity'],
+            'discount': 0,
+            'posNumber': ware['posNumber']
+        })
+
+    # TODO дописать проверки цены
+    # if
+
+    if total_wares_sum > total_price:
+        msg = 'Сумма переданых товаров превышает сумму самого заказа!'
+        raise CashboxException(
+            data=msg,
+            to_logging=msg + f'\nСумма товаров: {total_wares_sum} \nСумма заказа: {total_price}'
+        )
+
+    to_kkt = {
+        'cashier_name': data['cashier_name'],
+        'payment_type': data['payment_type'],
+        'document_type': doc_type,
+        'amount_entered': data['total_price_with_discount'],
+        'pay_link': data['payment_link'],
+        'wares': _wares
+    }
+
+    result = KKTDevice.handle_order(**to_kkt)
+
+    pp('formatted info!!!')
+    pp(result)
+
+    to_paygate = {
+        'clientOrderID': order_id,
+        'proj': cashbox.project_number,
+        'wares': _wares,
+        'checkNumber': int(result['check_number']),
+        'cashID': kkt_info['fn_number'],
+        'refundAmount': result['transaction_sum']
+    }
+
+    content = await request_to_paygate(CS['paygateAddress'] + PaygateURLs.refund_part, 'POST', to_paygate)
+
+    print('response from paygate')
+    pp(content)
+
+
 def _build_wares(wares):
     _wares = []
     copied_wares = deepcopy(wares)
-    for ware in copied_wares:
+    for pos, ware in enumerate(copied_wares, 1):
         # tax_rate = get_cashbox_tax_from_fiscal_tax(int(ware['tax_number']))
         tax_rate = int(ware['tax_rate'])
         divi = float(f'{1}.{tax_rate // 10}')
@@ -221,12 +297,15 @@ def _build_wares(wares):
 
         tax_sum = round_half_up(price_for_all / divi * multi, 2)
 
-        ware.update({'priceDiscount': price})
-        ware.update({'taxRate': tax_rate})
-        ware.update({'taxSum': tax_sum})
-        ware.update({'tax_number': get_fiscal_tax_from_cashbox_tax(tax_rate)})
-        ware.update({'amount': price_for_all})
-        ware.update({'department': CS['department']})
+        ware.update({
+            'posNumber': pos,
+            'priceDiscount': price,
+            'taxRate': tax_rate,
+            'taxSum': tax_sum,
+            'tax_number': get_fiscal_tax_from_cashbox_tax(tax_rate),
+            'amount': price_for_all,
+            'department': CS['department']
+        })
         _wares.append(ware)
 
     return _wares
