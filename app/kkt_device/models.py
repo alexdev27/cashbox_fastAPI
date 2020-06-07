@@ -182,15 +182,22 @@ class Pirit2f(IKKTDevice):
             msg = 'Терминал безналичной оплаты вернул ошибку во время транзакции'
             raise CashboxException(data=msg, to_logging=msg + f'\nИнформация с аркуса: {result}')
 
+        from pprint import pprint as pp
+        print('FROM FISKALNIK')
+        pp(result)
+
         info = {}
         transaction_sum = round_half_down(result['transaction_sum'] - result['discount_sum'], 2)
         info['cashier_name'] = result['cashier']
         info['datetime'] = result['datetime']
         info['doc_number'] = result['doc_number']
-        info['total_without_discount'] = transaction_sum
+        # При наличном платеже с пирита приходит transaction_sum без округления в меньшую сторону,
+        # и пока можно оставить строчку ниже без изменений
+        info['total_without_discount'] = round_half_down(result['transaction_sum'], 2)
 
         info['transaction_sum'] = transaction_sum
-        info['check_number'] = result['check_number']
+        # info['check_number'] = result['check_number']
+        info['check_number'] = str(int(str(result['check_number']).rsplit('.', maxsplit=1)[-1]) - 1)
         info['order_num'] = int(str(result['check_number']).rsplit('.', maxsplit=1)[-1])
         info['rrn'] = result.get('rrn', '')
         info['pan_card'] = result.get('pan_card', '')
