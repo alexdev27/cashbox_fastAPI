@@ -10,6 +10,26 @@ from app.helpers import truncate
 from app.cashbox.main_cashbox.models import Cashbox
 
 
+class DBWareSchema(BaseModel):
+    name: str
+    price: float
+    quantity: int
+    measure: str
+    code: str
+    barcode: str
+    priceDiscount: float
+    discount: float
+    tax_number: int
+    taxRate: float
+    taxSum: float
+    amount: float
+    department: int
+    posNumber: int
+
+    class Config:
+        orm_mode = True
+
+
 class RequestWares(BaseModel):
     name: str = Field(..., title='Название товара', min_length=3)
     barcode: str = Field(..., title='Баркод товара', min_length=4)
@@ -62,6 +82,9 @@ class ResponseCreateOrder(DefaultSuccessResponse):
     order_time: str = Field(..., title='Время заказа (из фискального регистратора). Пример: "2020-01-28 09:00:27"')
     cash_character: str = Field(..., title='Символ кассы. Необходим для совершения заказа/оплаты', min_length=1)
     device_id: str = Field(..., title='Идентификатор устройства (кассы)', min_length=4)
+    total_price: float = Field(...)
+    total_price_with_discount: float = Field(...)
+    wares: List[DBWareSchema] = Field(...)
 
 
 class RequestReturnOrder(CashierData):
@@ -125,8 +148,28 @@ class ConvertToResponseCreateOrder(Schema):
     order_time = fields.Str(required=True, load_from='creation_date')
     cash_character = fields.Str(required=True, load_from='order_prefix')
     device_id = fields.Str(required=True)
+    total_price = fields.Float(required=True, load_from='amount')
+    total_price_with_discount = fields.Float(required=True, load_from='amount_with_discount')
+    wares = fields.Nested(WareSchema, many=True, load_from='wares')
 
     @post_load
     def modify_time(self, data):
         data['order_time'] = str(data['order_time']).replace('T', ' ')
         return data
+
+
+class WareToPartialReturn(RequestWares):
+    pass
+
+
+class RequestPartialReturn(CashierData):
+    internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа', min_length=9)
+    payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
+    payment_link: str = Field("", title='Ссылка платежа (пустая, если наличный расчет)')
+    total_price: float = Field(...)
+    total_price_with_discount: float = Field(...)
+    wares: List[DBWareSchema] = Field(..., title='Список позиций для возврата', min_items=1)
+
+
+class ResponsePartialReturn(DefaultSuccessResponse):
+    msg: str = Field('Возврат прошел успешно', title='Сообщение об успешном возврате')
