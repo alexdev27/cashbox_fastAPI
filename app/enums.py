@@ -17,6 +17,8 @@ class PaygateURLs(Enum):
     insert_cash = '/cashin'
     remove_cash = '/cashout'
     register_cash = '/regcash'
+    refund_part = '/refundpay'
+    check_order_status = '/checkstatus'
 
     def __get__(self, instance, owner):
         return self.value
