@@ -18,6 +18,7 @@ class Ware(Document):
     taxSum = FloatField(required=True)
     amount = FloatField(required=True)
     department = IntField(required=True)
+    posNumber = IntField(required=True)
     meta = {'collection': 'wares', 'strict': False, 'indexes': ['barcode']}
 
 
