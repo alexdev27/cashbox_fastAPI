@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime
 from pydantic import Field, BaseModel, validator
-from app.enums import PaymentChoices, DocumentTypes, CashboxTaxesNumbers
+from app.enums import PaymentChoices, DocumentTypes, CashboxTaxesNumbers, FiscalTaxesNumbers
 from app.schemas import DefaultSuccessResponse, CashierData
 from .models import Ware, Order
 from marshmallow_mongoengine import ModelSchema, fields
@@ -158,18 +158,25 @@ class ConvertToResponseCreateOrder(Schema):
         return data
 
 
-class WareToPartialReturn(RequestWares):
-    pass
+class WareToPartialReturn(BaseModel):
+    name: str = Field(..., title='Название товара', min_length=3)
+    barcode: str = Field(..., title='Баркод товара', min_length=4)
+    code: str = Field(..., title='Локальный код товара', min_length=4)
+    quantity: int = Field(..., title='Количество', ge=1)
+    price: float = Field(..., title='Цена товара', ge=0.5)
+    priceDiscount: float = Field(..., title='Цена товара со скидкой')
+    tax_number: FiscalTaxesNumbers = Field(..., title='Номер налога')
+    posNumber: int = Field(..., title='Номер позиции в настоящем чеке', ge=1)
 
 
 class RequestPartialReturn(CashierData):
     internal_order_uuid: str = Field(..., title='Уникальный идентификатор заказа', min_length=9)
     payment_type: PaymentChoices = Field(..., title='Тип оплаты (наличный/безналичный)')
     payment_link: str = Field("", title='Ссылка платежа (пустая, если наличный расчет)')
-    total_price: float = Field(...)
-    total_price_with_discount: float = Field(...)
-    wares: List[DBWareSchema] = Field(..., title='Список позиций для возврата', min_items=1)
+    total_price_with_discount: float = Field(..., title='Цена за заказ (с учетом бывших частичных отмен, если были)')
+    wares: List[WareToPartialReturn] = Field(..., title='Список позиций для возврата', min_items=1)
 
 
 class ResponsePartialReturn(DefaultSuccessResponse):
     msg: str = Field('Возврат прошел успешно', title='Сообщение об успешном возврате')
+    actual_order_price: float = Field(..., title='Цена заказа после частичного возврата (приходит из paygate)')
