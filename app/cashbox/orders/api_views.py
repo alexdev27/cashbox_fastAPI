@@ -34,4 +34,4 @@ async def round_price(wares: List[RequestWares]):
 async def partial_return(order: RequestPartialReturn):
     kwargs = {'valid_schema_data': order.dict()}
     data = await funcs.partial_return(**kwargs)
-    return ResponsePartialReturn()
+    return ResponsePartialReturn(**data)
