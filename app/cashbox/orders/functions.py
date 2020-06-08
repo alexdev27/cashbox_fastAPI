@@ -220,21 +220,25 @@ async def partial_return(*args, **kwargs):
     data = kwargs['valid_schema_data']
     order_id = data['internal_order_uuid']
     doc_type = DocumentTypes.RETURN.value
-    total_price = data['total_price_with_discount']
     data_for_checkstatus = {'proj': cashbox.project_number, 'clientOrderID': order_id}
     checkstatus_url = CS['paygateAddress'] + PaygateURLs.check_order_status
-
+    return_part_url = CS['paygateAddress'] + PaygateURLs.refund_part
     checkstatus = await request_to_paygate(checkstatus_url, 'POST', data_for_checkstatus)
 
+    # print('| chekstatus response -> ', checkstatus)
 
+    if checkstatus['orderStatus'] == 'cancelled':
+        msg = 'Этот заказ уже был отменён'
+        to_log = msg + f'\nОтвет с платежного шлюза: {checkstatus}'
+        raise CashboxException(data=msg, to_logging=to_log)
 
-    # CALCULATE
+    valid_sum = checkstatus['confirmedSum']
 
     _wares = []
     total_wares_sum = 0
 
     for ware in data['wares']:
-        total_wares_sum += ware['amount']
+        total_wares_sum += ware['priceDiscount'] * ware['quantity']
         _wares.append({
             'name': ware['name'],
             'price': ware['priceDiscount'],
@@ -244,16 +248,13 @@ async def partial_return(*args, **kwargs):
             'discount': 0,
             'posNumber': ware['posNumber']
         })
+    total_wares_sum = round_half_down(total_wares_sum, 2)
 
-    # TODO дописать проверки цены
-    # if
-
-    if total_wares_sum > total_price:
-        msg = 'Сумма переданых товаров превышает сумму самого заказа!'
-        raise CashboxException(
-            data=msg,
-            to_logging=msg + f'\nСумма товаров: {total_wares_sum} \nСумма заказа: {total_price}'
-        )
+    # print('total wares sum ', total_wares_sum, 'valid sum ', valid_sum)
+    if total_wares_sum > valid_sum:
+        msg = 'Сумма переданых товаров превышает оставшуюся сумму заказа!'
+        to_log = msg + f'\nСумма товаров: {total_wares_sum} \nСумма заказа в paygate: {valid_sum}'
+        raise CashboxException(data=msg, to_logging=to_log)
 
     to_kkt = {
         'cashier_name': data['cashier_name'],
@@ -266,8 +267,8 @@ async def partial_return(*args, **kwargs):
 
     result = KKTDevice.handle_order(**to_kkt)
 
-    pp('formatted info!!!')
-    pp(result)
+    # pp('formatted info!!!')
+    # pp(result)
 
     to_paygate = {
         'clientOrderID': order_id,
@@ -278,10 +279,16 @@ async def partial_return(*args, **kwargs):
         'refundAmount': result['transaction_sum']
     }
 
-    content = await request_to_paygate(CS['paygateAddress'] + PaygateURLs.refund_part, 'POST', to_paygate)
+    try:
+        content = await request_to_paygate(return_part_url, 'POST', to_paygate)
+    except CashboxException as exc:
+        to_kkt['document_type'] = DocumentTypes.PAYMENT.value
+        KKTDevice.handle_order(**to_kkt)
+        raise CashboxException(data=exc.data['errors'], to_logging=exc.data)
 
-    print('response from paygate')
-    pp(content)
+    # print('| refund_part response -> ', content)
+
+    return {'actual_order_price': content.get('confirmedSum', 0)}
 
 
 def _build_wares(wares):
