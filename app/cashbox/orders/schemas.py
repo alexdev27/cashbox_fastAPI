@@ -10,7 +10,7 @@ from app.helpers import truncate
 from app.cashbox.main_cashbox.models import Cashbox
 
 
-class DBWareSchema(BaseModel):
+class ResponseWareSchema(BaseModel):
     name: str
     price: float
     quantity: int
@@ -25,6 +25,7 @@ class DBWareSchema(BaseModel):
     amount: float
     department: int
     posNumber: int
+    amount_returned: int = 0
 
     class Config:
         orm_mode = True
@@ -84,7 +85,7 @@ class ResponseCreateOrder(DefaultSuccessResponse):
     device_id: str = Field(..., title='Идентификатор устройства (кассы)', min_length=4)
     total_price: float = Field(...)
     total_price_with_discount: float = Field(...)
-    wares: List[DBWareSchema] = Field(...)
+    wares: List[ResponseWareSchema] = Field(...)
 
 
 class RequestReturnOrder(CashierData):
