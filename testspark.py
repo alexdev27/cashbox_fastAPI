@@ -1,13 +1,42 @@
 from pprint import pprint as pp
-from comtypes import *
-from comtypes.client import CreateObject, GetModule
-from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IFPSpark
+# from comtypes import *
+# from comtypes.client import CreateObject, GetModule
+# from comtypes.gen._445B09C3_EF00_47B4_9DB0_68DDD7AA9FF1_0_1_0 import FPSpark, IFPSpark
 # from comtypes.gen._CF921C08_02B9_415D_84C9_BA2ACE7C20AF_0_1_0 import \
 #     SAPacketObj, ISAPacketObj, PCPOSTConnectorObj, IPCPOSTConnectorObj
 
 # import arcus2
 #
 #
+import cashbox as c
+
+print_strings = "\n\n\n--------------------------------------------\n" \
+              "(font-style=BIG_BOLD)НОМЕР ЗАКАЗА: \n(font-style=BIG_BOLD)999\n" \
+              "--------------------------------------------\n\n"
+
+wares = [
+    {'name': 'test!',
+     'barcode': '123456',
+     'quantity': 1,
+     'price': 10.99,
+     'tax_number': 0,
+     'discount': 0},
+{'name': 'test!!',
+     'barcode': '123456',
+     'quantity': 1,
+     'price': 10.89,
+     'tax_number': 0,
+     'discount': 0}
+]
+
+c.open_port('COM3', 57600)
+
+res = c.new_transaction('test', 0, 3, wares)
+pp(res)
+
+c.close_port()
+
+exit()
 
 # info = arcus2.purchase(123)
 # pp(dir(arcus2))
