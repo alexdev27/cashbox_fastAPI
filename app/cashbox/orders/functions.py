@@ -211,6 +211,7 @@ def find_and_modify_one_ware_with_discount(wares, get_only_one_discounted_produc
     return _wares
 
 
+@logging_decorator('order_logs.log', 'order_logger', 'PARTIAL RETURN ORDER')
 @kkt_comport_activation()
 @validate_kkt_state()
 @check_for_opened_shift_in_fiscal()
