@@ -168,7 +168,7 @@ class Pirit2f(IKKTDevice):
         cashier = kwargs['cashier_name'] or DEFAULT_CASHIER_NAME
         p_type = kwargs['payment_type']
         d_type = kwargs['document_type']
-        order_number = kwargs.get('order_number')
+        order_number = kwargs.get('order_number', 0)
         wares = kwargs['wares']
         money_given = kwargs.get('amount_entered', 0)
         pay_link = kwargs.get('pay_link', '')
