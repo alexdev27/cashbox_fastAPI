@@ -4,6 +4,7 @@ from functools import wraps
 
 from app.logging import get_logger
 from app.helpers import round_half_down
+from app.enums import DocumentTypes
 from config import CASH_SETTINGS as CS
 import cashbox as real_kkt
 from app.exceptions import CashboxException
@@ -173,15 +174,16 @@ class Pirit2f(IKKTDevice):
         money_given = kwargs.get('amount_entered', 0)
         pay_link = kwargs.get('pay_link', '')
         pref = kwargs.get('order_prefix', '')
+        order_number += 1
         print('orderr number -> ', order_number, 'pay_link ', pay_link)
         text = f"\n\n\n--------------------------------------------\n" \
-               f"(font-style=BIG_BOLD)     НОМЕР ЗАКАЗА: (font-style=BIG_BOLD){order_number}" \
+               f"(font-style=BIG_BOLD)     НОМЕР ЗАКАЗА: (font-style=BIG_BOLD){pref}{order_number}" \
                f"\n --------------------------------------------\n\n"
         result = real_kkt.new_transaction(
             cashier=cashier, payment_type=p_type, doc_type=d_type,
             wares=copy.copy(wares), amount=money_given, rrn=pay_link,
             # order_prefix=pref,
-            print_strings=text if order_number else ''
+            print_strings=text if d_type == DocumentTypes.PAYMENT else ''
         )
 
         if result['error']:
@@ -204,7 +206,7 @@ class Pirit2f(IKKTDevice):
         info['transaction_sum'] = transaction_sum
         # info['check_number'] = result['check_number']
         info['check_number'] = str(int(str(result['check_number']).rsplit('.', maxsplit=1)[-1]))
-        info['order_num'] = order_number + 1
+        info['order_num'] = order_number
         info['rrn'] = result.get('rrn', '')
         info['pan_card'] = result.get('pan_card', '')
         info['cardholder_name'] = result.get('cardholder_name', '')
