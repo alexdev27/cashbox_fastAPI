@@ -92,3 +92,12 @@ class DocumentTypes(IntEnum):
     RETURN = ReturnDocumentType.RETURN
     INSERT = InsertDocumentType.INSERT
     REMOVE = RemoveDocumentType.REMOVE
+
+
+class UserRoles(str, Enum):
+    CASHIER = 'Кассир'
+    MASTER_CASHIER = 'Старший Кассир'
+    ENGINEER = 'Сервисный Инженер'
+
+    def __get__(self, instance, owner):
+        return self.value
