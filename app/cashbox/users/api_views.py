@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from .doc_kwargs import doc_create_user
 from .schemas import RequestCreateUser
+
 users_router = APIRouter()
 
 
