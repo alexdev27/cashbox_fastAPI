@@ -118,11 +118,11 @@ app.include_router(
     tags=['Заказы (совершение оплаты/отмены)'])
 
 
-app.include_router(
-    router=users_router,
-    prefix=url_with_prefix(),
-    tags=['Операции с пользователями']
-)
+# app.include_router(
+#     router=users_router,
+#     prefix=url_with_prefix(),
+#     tags=['Операции с пользователями']
+# )
 
 app.include_router(
     router=cashbox_router,
