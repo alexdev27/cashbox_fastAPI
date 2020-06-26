@@ -31,6 +31,7 @@ from .cashbox.insert_remove.api_views import router as insert_remove_router
 from .cashbox.shifts.api_views import router as shifts_router
 from .cashbox.orders.api_views import router as orders_router
 from .cashbox.main_cashbox.api_views import router as cashbox_router
+from .cashbox.users.api_views import users_router
 from .cashbox.main_cashbox.functions import init_cashbox
 from .custom_responses import response_400
 from .exceptions import CashboxException
@@ -115,6 +116,13 @@ app.include_router(
     prefix=url_with_prefix(),
     responses=response_400,
     tags=['Заказы (совершение оплаты/отмены)'])
+
+
+# app.include_router(
+#     router=users_router,
+#     prefix=url_with_prefix(),
+#     tags=['Операции с пользователями']
+# )
 
 app.include_router(
     router=cashbox_router,
