@@ -1,3 +1,5 @@
+from dateutil import parser
+
 from marshmallow_mongoengine import ModelSchema, fields
 from .models import OpenShift, CloseShift
 from app.schemas import CashierData, DefaultSuccessResponse
@@ -60,8 +62,14 @@ class OpenShiftSchema(ModelSchema):
             'cashNumber', 'shiftNumber', 'cashBalanceOpen',
             'inn', 'totalSellOpen', 'totalReturnOpen',
             'cashName', 'cashSerial', 'systemID', 'proj',
+            'creation_date'
         ]
-        return OpenShiftSchema(only=_fields).dump(shift_object).data
+
+        data = OpenShiftSchema(only=_fields).dump(shift_object).data
+        data.update({
+            'time': int(parser.parse(data['creation_date'], dayfirst=True).timestamp())
+        })
+        return data
 
 
 class CloseShiftSchema(ModelSchema):
@@ -85,5 +93,9 @@ class CloseShiftSchema(ModelSchema):
 
     @staticmethod
     def get_data_for_paygate(shift_object):
-        _fields = ['cashier_name', 'cashier_id', 'creation_date']
-        return CloseShiftSchema(exclude=_fields).dump(shift_object).data
+        _fields = ['cashier_name', 'cashier_id']
+        data = CloseShiftSchema(exclude=_fields).dump(shift_object).data
+        data.update({
+            'time': int(parser.parse(data['creation_date'], dayfirst=True).timestamp())
+        })
+        return data
