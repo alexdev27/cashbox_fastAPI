@@ -1,5 +1,5 @@
 from starlette.status import HTTP_200_OK, HTTP_204_NO_CONTENT
-from .schemas import ResponseCreateUser, ResponseGetUser
+from .schemas import ResponseCreateUser, ResponseGetUser, ResponseGetUsers
 
 doc_get_user = {
     'description': 'Получение информации о пользователе',
@@ -29,4 +29,12 @@ doc_delete_user = {
     'summary': 'Удаление пользователя',
     'response_description': 'Пользователь удален',
     'status_code': HTTP_204_NO_CONTENT
+}
+
+doc_get_users = {
+    'description': 'Получение списка пользователей',
+    'summary': 'Получение списка пользователей',
+    'response_description': 'Список пользователей',
+    'status_code': HTTP_200_OK,
+    'response_model': ResponseGetUsers
 }
