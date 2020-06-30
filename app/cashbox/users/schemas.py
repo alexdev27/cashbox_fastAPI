@@ -48,6 +48,11 @@ class ResponseGetUser(AllRequired):
     class Config:
         orm_mode = True
 
+
+class ResponseGetUsers(BaseModel):
+    result: List[ResponseGetUser] = Field(..., title='Пользователи')
+
+
 # class UserForView(BaseModel):
 #     id: ObjectIdStr = BaseFields.id_required
 #     fio: str
