@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from .doc_kwargs import doc_create_user, doc_update_user, doc_get_user, doc_delete_user
+from .doc_kwargs import doc_create_user, doc_update_user, doc_get_user, \
+    doc_delete_user, doc_get_users
 from .schemas import RequestCreateUser, RequestModifyUser
 
 from . import functions
@@ -18,6 +19,11 @@ async def create_user(data: RequestCreateUser):
 def get_user(user_id: str):
     kwargs = {'user_id': user_id}
     return functions.get_user(**kwargs)
+
+
+@users_router.get('/users', **doc_get_users)
+def get_users():
+    return functions.get_users()
 
 
 @users_router.put('/users/{user_id}', **doc_update_user)
