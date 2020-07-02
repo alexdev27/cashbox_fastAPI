@@ -72,8 +72,8 @@ def logging_decorator(filename, logger_name, operation=''):
                 err_msg = f'Возникло исключение {exc.__class__.__name__}. \n' \
                           f'Информация из ошибки: {exc.to_logging or exc.data["errors"]} \n'
 
-                if data_from_request:
-                    err_msg += f'\nДанные с запроса: {data_from_request}'
+                # if data_from_request:
+                #     err_msg += f'\nДанные с запроса: {data_from_request}'
                 logger.error(err_msg)
 
                 raise
