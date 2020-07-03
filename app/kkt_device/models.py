@@ -187,8 +187,8 @@ class Pirit2f(IKKTDevice):
         )
 
         if result['error']:
-            msg = 'Терминал безналичной оплаты вернул ошибку во время транзакции'
-            raise CashboxException(data=msg, to_logging=msg + f'\nИнформация с аркуса: {result}')
+            msg = f'Ошибка во время транзакции: {result["message"]}'
+            raise CashboxException(data=msg, to_logging=msg + f'\nИнформация: {result}')
 
         from pprint import pprint as pp
         print('FROM FISKALNIK')
