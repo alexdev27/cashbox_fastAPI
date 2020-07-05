@@ -45,6 +45,8 @@ class ResponseCreateUser(AllRequired):
 
 
 class ResponseGetUser(AllRequired):
+    id: ObjectIdStr = BaseFields.id
+
     class Config:
         orm_mode = True
 

@@ -1,6 +1,5 @@
 from app.utils.mongoengine_helpers import get_model_by_id_or_raise
 from .models import Users
-
 from passlib.context import CryptContext
 
 from app.exceptions import CashboxException
@@ -22,6 +21,7 @@ def create_user(**kwargs):
         msg = f'Этот пользователь с таким логином ( {data["login"]} ) уже существует'
         raise CashboxException(data=msg, to_logging=msg)
     hash_password_if_exist(data)
+    lowercase_login(data)
     return Users(**data).save()
 
 
@@ -30,6 +30,7 @@ def update_user(**kwargs):
     data = kwargs['valid_schema_data']
     user = get_model_by_id_or_raise(Users, user_id)
     hash_password_if_exist(data)
+    lowercase_login(data)
     user.update(**data)
 
 
@@ -45,9 +46,16 @@ def hash_password_if_exist(data):
         data['password'] = get_hashed_password(data['password'])
 
 
+def lowercase_login(data):
+    data['login'] = data['login'].lower()
+
+
 def is_user_exist(login):
     return bool(Users.objects(login__iexact=login).first())
 
+
+def get_db_user(login):
+    return Users.objects(login=login).first()
 
 # def verify_password(plain_password, hashed_password):
 #     return bcrypt_context.verify(plain_password, hashed_password)
