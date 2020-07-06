@@ -243,6 +243,7 @@ async def partial_return(*args, **kwargs):
         _wares.append({
             'name': ware['name'],
             'price': ware['priceDiscount'],
+            'priceDiscount': ware['priceDiscount'],
             'barcode': ware['barcode'],
             'tax_number': ware['tax_number'],
             'quantity': ware['quantity'],
@@ -258,6 +259,7 @@ async def partial_return(*args, **kwargs):
         raise CashboxException(data=msg, to_logging=to_log)
 
     to_kkt = {
+        'total_wares_sum': total_wares_sum,
         'cashier_name': data['cashier_name'],
         'payment_type': data['payment_type'],
         'document_type': doc_type,
@@ -284,6 +286,7 @@ async def partial_return(*args, **kwargs):
         content = await request_to_paygate(return_part_url, 'POST', to_paygate)
     except CashboxException as exc:
         to_kkt['document_type'] = DocumentTypes.PAYMENT.value
+        # TODO: Что-нибудь придумать с этим кейсом. Пока что это не работает должным образом
         KKTDevice.handle_order(**to_kkt)
         raise CashboxException(data=exc.data['errors'], to_logging=exc.data)
 
