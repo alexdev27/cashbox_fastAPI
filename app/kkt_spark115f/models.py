@@ -1,6 +1,6 @@
 from functools import wraps
 from os import environ as envs
-
+import traceback
 from comtypes.client import CreateObject, GetModule
 
 from app.logging import get_logger
@@ -38,6 +38,7 @@ def _handle_kkt_errors(func):
                   f'Описание: {str(exc)}'
             # pp(exc_info()[2])
             # print_tb(exc_info()[2], 20)
+            print(''.join(traceback.format_exception(etype=type(exc), value=exc, tb=exc.__traceback__)))
             Spark115f.kkt_object.DeinitDevice()
             raise CashboxException(data=msg)
 
@@ -443,9 +444,16 @@ def process_order(pennies, kwargs):
 
 def cancel_order(kwargs):
     pennies = int(kwargs['amount_entered'] * 100)
+
+    # quick patch
+    if kwargs.get('total_wares_sum'):
+        pennies = int(kwargs.get('total_wares_sum') * 100)
+
     if kwargs['payment_type'] == PaymentChoices.CASH.value:
         process_order(pennies, kwargs)
     elif kwargs['payment_type'] == PaymentChoices.NON_CASH.value:
         kwargs.update({'arcus_data': arcus_cancel_by_link(pennies, kwargs['pay_link'])})
         print_arcus_document(kwargs['arcus_data']['cheque'])
         process_order(pennies, kwargs)
+
+    kwargs.update({'total_price': int(pennies / 100)})
