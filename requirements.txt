@@ -6,7 +6,7 @@ async-timeout==3.0.1
 attrs==19.3.0
 billiard==3.6.2.0
 git+https://github.com/alex-pro27/cashbox
-celery==4.4.0
+celery==5.2.2
 cffi==1.13.2
 chardet==3.0.4
 Click==7.0
